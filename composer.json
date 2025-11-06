@@ -65,9 +65,9 @@
         },
         "files": [
             "app/Helpers/Helper.php",
-            "app/Helpers/Constant.php",
+            "app/Helpers/CoreConstant.php",
             "app/Helpers/CoreArray.php",
-            "app/Helpers/LangHelper.php"
+            "app/Helpers/langHelper.php"
         ]
     },
     "autoload-dev": {

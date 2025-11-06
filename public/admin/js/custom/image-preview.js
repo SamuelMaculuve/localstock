@@ -5,7 +5,7 @@ function previewFile(input) {
     var file = input.files[0];
     var reader = new FileReader();
 
-    if(input.files[0].size > 1000000){
+    if(input.files[0].size > 1900000){
         alert("Maximum file size is 1MB!");
     } else {
         reader.onloadend = function() {
@@ -119,7 +119,7 @@ function preview312369DimensionFile(input) {
 
         };
 
-        if(input.files[0].size > 1000000){
+        if(input.files[0].size > 1900000){
             alert("Maximum file size is 1MB!");
         }else {
             reader.onloadend = function() {
@@ -174,7 +174,7 @@ function preview125DimensionFile(input) {
 
         };
 
-        if(input.files[0].size > 1000000){
+        if(input.files[0].size > 1900000){
             alert("Maximum file size is 1MB!");
         }else {
             reader.onloadend = function() {
