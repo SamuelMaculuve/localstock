@@ -37,7 +37,7 @@ class FileManager extends Model
             // ---------------------------------------------------------------------
             if ($is_watermark && getOption('water_mark_img') && !$is_main_file) {
 
-                $manager = new ImageManager(new Driver()); // Initialize new ImageManager
+                $manager = new ImageManager(Driver::class);// Initialize new ImageManager
 
                 // Main image
                 $img = $manager->read($file->getRealPath());
