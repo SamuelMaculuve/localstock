@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Intervention\Image\Laravel\Facades\Image;
 
 class FileManager extends Model
 {
@@ -37,42 +38,52 @@ class FileManager extends Model
             // ---------------------------------------------------------------------
             if ($is_watermark && getOption('water_mark_img') && !$is_main_file) {
 
-                $manager = new ImageManager(Driver::class);// Initialize new ImageManager
+            try {
+                // Use Intervention Image v2 syntax
+                $img = Image::make($file->getRealPath());
 
-                // Main image
-                $img = $manager->read($file->getRealPath());
-
-                // Load watermark file
+                // Get watermark path
                 $watermarkPath = $this->getWatermarkImage();
-                $watermark = $manager->read($watermarkPath);
+
+                if (!file_exists($watermarkPath)) {
+                    throw new \Exception('Watermark image not found');
+                }
+
+                $watermark = Image::make($watermarkPath);
 
                 // Resize watermark (5% of main width)
                 $wmWidth = (int)($img->width() * 0.05);
                 $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
-                $watermark = $watermark->resize($wmWidth, $wmHeight);
+                $watermark->resize($wmWidth, $wmHeight);
 
                 // Apply pattern across image
                 for ($x = 0; $x < $img->width(); $x += $wmWidth + 80) {
                     for ($y = 0; $y < $img->height(); $y += $wmHeight + 80) {
-                        $img->place($watermark, 'top-left', $x, $y);
+                        $img->insert($watermark, 'top-left', $x, $y);
                     }
                 }
 
-                // Save temp file
+                // Save the image
                 $tempPath = storage_path('app/temp/' . $file_name);
-
                 if (!file_exists(storage_path('app/temp'))) {
                     mkdir(storage_path('app/temp'), 0777, true);
                 }
 
                 $img->save($tempPath);
 
-                // Store file
                 Storage::disk(config('app.STORAGE_DRIVER'))
                     ->put($path, file_get_contents($tempPath));
 
                 unlink($tempPath);
+
+            } catch (\Exception $e) {
+                Log::warning('Watermark failed, uploading original: ' . $e->getMessage());
+                // Fallback to regular upload
+                Storage::disk(config('app.STORAGE_DRIVER'))
+                    ->put($path, file_get_contents($file->getRealPath()));
             }
+
+        }
             // ---------------------------------------------------------------------
             // NO WATERMARK - just upload normally
             // ---------------------------------------------------------------------
