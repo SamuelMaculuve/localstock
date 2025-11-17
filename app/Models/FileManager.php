@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
 class FileManager extends Model
@@ -35,7 +36,7 @@ class FileManager extends Model
             // ---------------------------------------------------------------------
             if ($is_watermark && getOption('water_mark_img') && !$is_main_file) {
 
-                $manager = app(ImageManager::class); // Initialize new ImageManager
+                $manager = new ImageManager(new Driver()); // Initialize new ImageManager
 
                 // Main image
                 $img = $manager->read($file->getRealPath());
