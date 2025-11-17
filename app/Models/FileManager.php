@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class FileManager extends Model
 {
@@ -37,42 +38,53 @@ class FileManager extends Model
             if ($is_watermark && getOption('water_mark_img') && !$is_main_file) {
 
             try {
-                // Use Intervention Image v2 syntax
-                $img = Image::make($file->getRealPath());
+                // V3: Initialize with driver instance
+                $manager = new ImageManager(new Driver());
+
+                // V3: Use read() instead of make()
+                $image = $manager->read($file->getRealPath());
 
                 // Get watermark path
                 $watermarkPath = $this->getWatermarkImage();
 
                 if (!file_exists($watermarkPath)) {
-                    throw new \Exception('Watermark image not found');
+                    throw new \Exception('Watermark image not found: ' . $watermarkPath);
                 }
 
-                $watermark = Image::make($watermarkPath);
+                // V3: Read watermark
+                $watermark = $manager->read($watermarkPath);
 
                 // Resize watermark (5% of main width)
-                $wmWidth = (int)($img->width() * 0.05);
+                $wmWidth = (int)($image->width() * 0.05);
                 $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
+
+                // V3: Resize watermark
                 $watermark->resize($wmWidth, $wmHeight);
 
-                // Apply pattern across image
-                for ($x = 0; $x < $img->width(); $x += $wmWidth + 80) {
-                    for ($y = 0; $y < $img->height(); $y += $wmHeight + 80) {
-                        $img->insert($watermark, 'top-left', $x, $y);
+                // V3: Apply pattern using place() instead of insert()
+                for ($x = 0; $x < $image->width(); $x += $wmWidth + 80) {
+                    for ($y = 0; $y < $image->height(); $y += $wmHeight + 80) {
+                        $image->place($watermark, $x, $y);
                     }
                 }
 
-                // Save the image
+                // Save to temporary file
                 $tempPath = storage_path('app/temp/' . $file_name);
                 if (!file_exists(storage_path('app/temp'))) {
                     mkdir(storage_path('app/temp'), 0777, true);
                 }
 
-                $img->save($tempPath);
+                // V3: Save the image
+                $image->save($tempPath);
 
+                // Store in final location
                 Storage::disk(config('app.STORAGE_DRIVER'))
                     ->put($path, file_get_contents($tempPath));
 
-                unlink($tempPath);
+                // Clean up
+                if (file_exists($tempPath)) {
+                    unlink($tempPath);
+                }
 
             } catch (\Exception $e) {
                 Log::warning('Watermark failed, uploading original: ' . $e->getMessage());
