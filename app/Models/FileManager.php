@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
@@ -101,6 +102,7 @@ class FileManager extends Model
             ];
 
         } catch (\Exception $exception) {
+            Log::error('File Upload Error: ' . $exception->getMessage());
             return [
                 'status' => false,
                 'file' => [],
