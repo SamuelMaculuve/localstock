@@ -134,17 +134,7 @@ class FileManager extends Model
 
     private function getWatermarkImage()
     {
-        if ($watermarkFileId = getOption('water_mark_img')) {
-            $fileManager = self::find($watermarkFileId);
-            if ($fileManager) {
-                $path = "files/Setting/{$fileManager->file_name}";
-                if (Storage::disk(config('app.STORAGE_DRIVER'))->exists($path)) {
-                    return Storage::disk(config('app.STORAGE_DRIVER'))->path($path);
-                }
-            }
-        }
-
-        return public_path('frontend/assets/img/mask.png');
+        return getSettingImage('water_mark_img');
     }
 
     public function removeFile()
