@@ -134,7 +134,9 @@ class FileManager extends Model
 
     private function getWatermarkImage()
     {
-        return getSettingImage('water_mark_img');
+        $watermarkPathFromDB = getSettingImage('water_mark_img');
+        return $this->downloadWatermarkFromUrl($watermarkPathFromDB);
+
     }
 
     public function removeFile()
@@ -145,4 +147,49 @@ class FileManager extends Model
         }
         return 200;
     }
+
+    protected function downloadWatermarkFromUrl($url)
+{
+    try {
+        $tempPath = storage_path('app/temp/watermark_' . md5($url) . '.png');
+
+        // Create temp directory if it doesn't exist
+        if (!file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
+        // Check if we already have a cached version (less than 1 hour old)
+        if (file_exists($tempPath) && (time() - filemtime($tempPath)) < 3600) {
+            return $tempPath;
+        }
+
+        // Download from URL using Guzzle or file_get_contents with context
+        $context = stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+            'http' => [
+                'timeout' => 30,
+                'ignore_errors' => true
+            ]
+        ]);
+
+        $watermarkContent = file_get_contents($url, false, $context);
+
+        if ($watermarkContent === false) {
+            throw new \Exception('Failed to download watermark from URL');
+        }
+
+        // Save to temporary file
+        file_put_contents($tempPath, $watermarkContent);
+
+        return $tempPath;
+
+    } catch (\Exception $e) {
+        Log::error('Error downloading watermark from URL: ' . $e->getMessage());
+        return null;
+    }
+}
+
 }
