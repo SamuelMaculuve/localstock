@@ -70,68 +70,86 @@ class BulkUploadController extends Controller
     {
         DB::beginTransaction();
         try {
-            $getCsvFile = asset("storage/unzip/sample/mapping.csv");
+
+            // Caminho real do ficheiro CSV
+            $getCsvFile = storage_path("app/public/unzip/sample/mapping.csv");
+
+            if (!file_exists($getCsvFile)) {
+                throw new Exception("Mapping file not found: " . $getCsvFile);
+            }
+
             $handle = fopen($getCsvFile, 'r');
+
+            if ($handle === false) {
+                throw new Exception('Unable to open mapping.csv');
+            }
+
             $productTypes = ProductType::with('product_type_extensions')->get();
-            if ($handle !== false) {
-                while (($line = fgets($handle)) !== false) {
+            $data['items'] = [];
 
-                    $row =  explode('|', $line);
-                    $type = ProductType::whereRaw('LOWER(`name`) LIKE ? ', [trim(strtolower($row[5])) . '%'])->first();
-                    $category = ProductCategory::whereRaw('LOWER(`name`) LIKE ? ', [trim(strtolower($row[6])) . '%'])->first();
-                    $tagIds = Tag::whereIn('name', explode(',', $row[7]))->select('id')->pluck('id')->toArray();
+            while (($line = fgets($handle)) !== false) {
 
-                    // Value Assign
-                    $value['title'] = $row[0];
-                    $value['thumbnail'] = asset("storage/unzip/sample/" . $row[1]);
-                    $value['thumbnailName'] = $row[1];
-                    $value['variation'] = $row[2];
-                    $value['price'] = $row[3];
-                    $value['file'] = asset("storage/unzip/sample/" . $row[4]);
-                    $value['fileName'] = $row[4];
-                    $value['type'] = $type->id ?? null;
-                    $value['category'] = $category->id ?? null;
-                    $value['tags'] = $tagIds ?? [];
-                    $value['status'] = DISABLE;
-                    $value['file_types'] = "";
+                $row = explode('|', $line);
 
-                    if(file_exists(storage_path("app/public/unzip/sample/". $row[4]))){
-                        $pathInfo = pathinfo(storage_path("app/public/unzip/sample/". $row[4]));
-                        $extension = $pathInfo['extension'];
-                        $productType = $productTypes->where('id', $value['type'])->first();
-                        if(!is_null($productType)){
-                            $productTypeExtension =$productType->product_type_extensions->where('name', $extension)->first();
-                            if(!is_null($productTypeExtension)){
-                                if($value['thumbnailName'] == ""){
-                                    $value['status'] = ACTIVE;
-                                    $value['file_types'] = $productTypeExtension->name;
-                                }
-                                elseif(file_exists(storage_path("app/public/unzip/sample/". $value['thumbnailName']))){
-                                    $value['status'] = ACTIVE;
-                                    $value['file_types'] = $productTypeExtension->name;
-                                }
+                $type = ProductType::whereRaw('LOWER(`name`) LIKE ?', [trim(strtolower($row[5])) . '%'])->first();
+                $category = ProductCategory::whereRaw('LOWER(`name`) LIKE ?', [trim(strtolower($row[6])) . '%'])->first();
+                $tagIds = Tag::whereIn('name', explode(',', $row[7]))->pluck('id')->toArray();
+
+                $value['title'] = $row[0];
+                $value['thumbnail'] = asset("storage/unzip/sample/" . $row[1]);
+                $value['thumbnailName'] = $row[1];
+                $value['variation'] = $row[2];
+                $value['price'] = $row[3];
+                $value['file'] = asset("storage/unzip/sample/" . $row[4]);
+                $value['fileName'] = $row[4];
+                $value['type'] = $type->id ?? null;
+                $value['category'] = $category->id ?? null;
+                $value['tags'] = $tagIds ?? [];
+                $value['status'] = DISABLE;
+                $value['file_types'] = "";
+
+                $fullFilePath = storage_path("app/public/unzip/sample/" . $row[4]);
+
+                if (file_exists($fullFilePath)) {
+                    $pathInfo = pathinfo($fullFilePath);
+                    $extension = $pathInfo['extension'];
+
+                    $productType = $productTypes->where('id', $value['type'])->first();
+
+                    if ($productType) {
+                        $productTypeExtension = $productType->product_type_extensions->where('name', $extension)->first();
+
+                        if ($productTypeExtension) {
+                            if ($value['thumbnailName'] == "" ||
+                                file_exists(storage_path("app/public/unzip/sample/" . $value['thumbnailName']))) {
+
+                                $value['status'] = ACTIVE;
+                                $value['file_types'] = $productTypeExtension->name;
                             }
                         }
                     }
-                    // Items
-                    $data['items'][] = $value;
                 }
-            } else {
-                throw new Exception('Mapping File Mismatch');
+
+                $data['items'][] = $value;
             }
 
             fclose($handle);
+
             DB::commit();
+
             $data['pageTitle'] = 'Product Bulk Upload Check';
             $data['productTypes'] = ProductType::active()->get();
             $data['tags'] = Tag::all();
             $data['subNavProductBulkUploadActiveClass'] = 'active';
             $data['showProducts'] = 'show';
+
             return view('admin.product.bulk-upload-check', $data);
+
         } catch (Exception $e) {
             Log::info($e);
             DB::rollBack();
-            return redirect()->route('admin.product.bulk-upload.index')->with('error', __('Something Went Wrong'));
+            return redirect()->route('admin.product.bulk-upload.index')
+                ->with('error', __('Something Went Wrong'));
         }
     }
 
