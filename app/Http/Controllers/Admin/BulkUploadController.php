@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use ZipArchive;
 
@@ -37,34 +38,41 @@ class BulkUploadController extends Controller
         return view('admin.product.bulk-upload', $data);
     }
 
-    public function product_bulk_upload_file(BulkUploadRequest $request)
-    {
-        DB::beginTransaction();
-        try {
-            if (is_dir(storage_path("app\unzip\public\\"))) {
-                rmdir(storage_path("app\unzip\public\\"));
-            }
-            $zip = new ZipArchive();
-            $status = $zip->open($request->file("bulk_upload_file")->getRealPath());
-            if ($status !== true) {
-                throw new \Exception($status);
-            } else {
-                $storageDestinationPath = storage_path("app\public\unzip\\");
 
-                if (!file_exists($storageDestinationPath)) {
-                    mkdir($storageDestinationPath, 0755, true);
-                }
-                $zip->extractTo($storageDestinationPath);
-                $zip->close();
-            }
-            DB::commit();
-            return redirect()->route('admin.product.bulk-upload.check');
-        } catch (Exception $e) {
-            Log::info($e);
-            DB::rollBack();
-            return redirect()->route('admin.product.bulk-upload.index')->with('error', __('Something Went Wrong'));
+public function product_bulk_upload_file(BulkUploadRequest $request)
+{
+    DB::beginTransaction();
+    try {
+        // Clean up existing directory using Storage facade
+        if (Storage::exists('unzip')) {
+            Storage::deleteDirectory('unzip');
         }
+
+        $zip = new ZipArchive();
+        $status = $zip->open($request->file("bulk_upload_file")->getRealPath());
+
+        if ($status !== true) {
+            throw new \Exception("Failed to open zip file. Error code: " . $status);
+        }
+
+        // Extract to storage using Storage path
+        $storageDestinationPath = Storage::path('unzip/');
+
+        if (!file_exists($storageDestinationPath)) {
+            mkdir($storageDestinationPath, 0755, true);
+        }
+
+        $zip->extractTo($storageDestinationPath);
+        $zip->close();
+
+        DB::commit();
+        return redirect()->route('admin.product.bulk-upload.check');
+    } catch (Exception $e) {
+        Log::error('Bulk upload error: ' . $e->getMessage());
+        DB::rollBack();
+        return redirect()->route('admin.product.bulk-upload.index')->with('error', __('Something Went Wrong'));
     }
+}
 
     public function product_bulk_upload_check()
     {
@@ -72,7 +80,7 @@ class BulkUploadController extends Controller
         try {
 
             // Caminho real do ficheiro CSV
-            $getCsvFile = storage_path("app/public/unzip/sample/mapping.csv");
+            $getCsvFile = storage_path("app/public/unzip/stocklocal/mapping.csv");
 
             if (!file_exists($getCsvFile)) {
                 throw new Exception("Mapping file not found: " . $getCsvFile);
@@ -96,11 +104,11 @@ class BulkUploadController extends Controller
                 $tagIds = Tag::whereIn('name', explode(',', $row[7]))->pluck('id')->toArray();
 
                 $value['title'] = $row[0];
-                $value['thumbnail'] = asset("storage/unzip/sample/" . $row[1]);
+                $value['thumbnail'] = asset("storage/unzip/stocklocal/" . $row[1]);
                 $value['thumbnailName'] = $row[1];
                 $value['variation'] = $row[2];
                 $value['price'] = $row[3];
-                $value['file'] = asset("storage/unzip/sample/" . $row[4]);
+                $value['file'] = asset("storage/unzip/stocklocal/" . $row[4]);
                 $value['fileName'] = $row[4];
                 $value['type'] = $type->id ?? null;
                 $value['category'] = $category->id ?? null;
@@ -108,7 +116,7 @@ class BulkUploadController extends Controller
                 $value['status'] = DISABLE;
                 $value['file_types'] = "";
 
-                $fullFilePath = storage_path("app/public/unzip/sample/" . $row[4]);
+                $fullFilePath = storage_path("app/public/unzip/stocklocal/" . $row[4]);
 
                 if (file_exists($fullFilePath)) {
                     $pathInfo = pathinfo($fullFilePath);
@@ -121,7 +129,7 @@ class BulkUploadController extends Controller
 
                         if ($productTypeExtension) {
                             if ($value['thumbnailName'] == "" ||
-                                file_exists(storage_path("app/public/unzip/sample/" . $value['thumbnailName']))) {
+                                file_exists(storage_path("app/public/unzip/stocklocal/" . $value['thumbnailName']))) {
 
                                 $value['status'] = ACTIVE;
                                 $value['file_types'] = $productTypeExtension->name;
@@ -169,7 +177,7 @@ class BulkUploadController extends Controller
 
                     if(!isset($item['thumbnail_image'])){
                         if($item['thumbnail_image_path'] != ""){
-                            $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/sample/".$item['thumbnail_image_path']), $item['title'].'_thumb.'.$item['file_types']);
+                            $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/".$item['thumbnail_image_path']), $item['title'].'_thumb.'.$item['file_types']);
                             $item['thumbnail_image'] = $uploadedMainFile;
                         }
                         else{
@@ -182,7 +190,7 @@ class BulkUploadController extends Controller
                     }
 
                     if(!isset($item['file'])){
-                        $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/sample/".$item['file_name']), $item['title'].'.'.$item['file_types']);
+                        $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/".$item['file_name']), $item['title'].'.'.$item['file_types']);
                         $item['main_files'][] = $uploadedMainFile;
                     }
                     else{

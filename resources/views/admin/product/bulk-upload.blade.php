@@ -27,7 +27,7 @@
             <p class="mb-1">{{ __("If main file is not found or invalid then it will mark as not uploadable.") }}</p>
             <p class="mb-1">{{ __("If any items has invalid item then it will not upload as mark as not uploadable.") }}</p>
             <div class="bg-black p-2">
-                <p class="mb-1 text-white">{{ __("Download the sample zip file and prepare the file with your data.") }} <a class="text-link" download href="{{ asset('bulk-upload/sample.zip') }}"> {{ __("Download") }} </a></p>
+                <p class="mb-1 text-white">{{ __("Download the sample zip file and prepare the file with your data.") }} <a class="text-link" download href="{{ asset('bulk-upload/stocklocal.zip') }}"> {{ __("Download") }} </a></p>
                 <p class="mb-1 text-white">CSV file sequence, [Product Title, Thumbnail, Variation Name, Price (0 if free product), Main File, Product Type, Category, Tags with comma separate]</p>
             </div>
         </div>
