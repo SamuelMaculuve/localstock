@@ -43,21 +43,23 @@ public function product_bulk_upload_file(BulkUploadRequest $request)
 {
     DB::beginTransaction();
     try {
-        // Clean up existing directory using Storage facade
-        if (Storage::exists('unzip')) {
-            Storage::deleteDirectory('unzip');
+        // Define paths using storage_path() - this always points to local storage
+        $unzipDir = storage_path('app/public/unzip/');
+        $storageDestinationPath = storage_path('app/public/unzip/');
+
+        // Clean up existing directory
+        if (is_dir($unzipDir)) {
+            $this->deleteDirectory($unzipDir);
         }
 
         $zip = new ZipArchive();
         $status = $zip->open($request->file("bulk_upload_file")->getRealPath());
 
         if ($status !== true) {
-            throw new \Exception("Failed to open zip file. Error code: " . $status);
+            throw new Exception("Failed to open zip file. Error code: " . $status);
         }
 
-        // Extract to storage using Storage path
-        $storageDestinationPath = Storage::path('unzip/');
-
+        // Create directory if it doesn't exist
         if (!file_exists($storageDestinationPath)) {
             mkdir($storageDestinationPath, 0755, true);
         }
@@ -72,6 +74,18 @@ public function product_bulk_upload_file(BulkUploadRequest $request)
         DB::rollBack();
         return redirect()->route('admin.product.bulk-upload.index')->with('error', __('Something Went Wrong'));
     }
+}
+
+private function deleteDirectory($dir)
+{
+    if (!is_dir($dir)) return;
+
+    $files = array_diff(scandir($dir), ['.', '..']);
+    foreach ($files as $file) {
+        $path = $dir . '/' . $file;
+        is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
+    }
+    rmdir($dir);
 }
 
     public function product_bulk_upload_check()
