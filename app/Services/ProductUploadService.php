@@ -73,16 +73,16 @@ class ProductUploadService
                         $zipFileName = $getFileName . '.zip';
                         $zipFileName = str_replace(' ', '_', $zipFileName);
 
-                        if (!file_exists(storage_path("app/public/unzip/sample"))) {
-                            mkdir(storage_path("app/public/unzip/sample"), 0777, true);
+                        if (!file_exists(storage_path("app/public/unzip/stocklocal"))) {
+                            mkdir(storage_path("app/public/unzip/stocklocal"), 0777, true);
                         }
 
                         $zip = new ZipArchive();
-                        $zip->open(storage_path("app/public/unzip/sample/" . $zipFileName), ZipArchive::CREATE);
+                        $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
                         $zip->addFile($item['main_files'][$index], $getFileName . '.' . $extension);
                         $zip->close();
 
-                        $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/sample/" . $zipFileName), $zipFileName);
+                        $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
                     } else {
                         $uploadedMainFile = $item['main_files'][$index];
                     }
@@ -103,8 +103,8 @@ class ProductUploadService
                         throw new Exception($upload['message']);
                     }
 
-                    if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/sample/" . $zipFileName))) {
-                        unlink(storage_path("app/public/unzip/sample/" . $zipFileName));
+                    if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/stocklocal/" . $zipFileName))) {
+                        unlink(storage_path("app/public/unzip/stocklocal/" . $zipFileName));
                     }
                     /*End Main File (Zip)*/
                 }
@@ -119,16 +119,16 @@ class ProductUploadService
                     $zipFileName = $getFileName . '.zip';
                     $zipFileName = str_replace(' ', '_', $zipFileName);
 
-                    if (!file_exists(storage_path("app/public/unzip/sample"))) {
-                        mkdir(storage_path("app/public/unzip/sample"), 0777, true);
+                    if (!file_exists(storage_path("app/public/unzip/stocklocal"))) {
+                        mkdir(storage_path("app/public/unzip/stocklocal"), 0777, true);
                     }
 
                     $zip = new ZipArchive();
-                    $zip->open(storage_path("app/public/unzip/sample/" . $zipFileName), ZipArchive::CREATE);
+                    $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
                     $zip->addFile($item['main_file'], $getFileName . '.' . $extension);
                     $zip->close();
 
-                    $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/sample/" . $zipFileName), $zipFileName);
+                    $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
                 } else {
                     $uploadedMainFile = $item['main_file'];
                 }
@@ -148,8 +148,8 @@ class ProductUploadService
                     throw new Exception($upload['message']);
                 }
 
-                if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/sample/" . $zipFileName))) {
-                    unlink(storage_path("app/public/unzip/sample/" . $zipFileName));
+                if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/stocklocal/" . $zipFileName))) {
+                    unlink(storage_path("app/public/unzip/stocklocal/" . $zipFileName));
                 }
                 /*End Main File (Zip)*/
             }
@@ -257,16 +257,16 @@ class ProductUploadService
                             $zipFileName = $getFileName . '.zip';
                             $zipFileName = str_replace(' ', '_', $zipFileName);
 
-                            if (!file_exists(storage_path("app/public/unzip/sample"))) {
-                                mkdir(storage_path("app/public/unzip/sample"), 0777, true);
+                            if (!file_exists(storage_path("app/public/unzip/stocklocal"))) {
+                                mkdir(storage_path("app/public/unzip/stocklocal"), 0777, true);
                             }
 
                             $zip = new ZipArchive();
-                            $zip->open(storage_path("app/public/unzip/sample/" . $zipFileName), ZipArchive::CREATE);
+                            $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
                             $zip->addFile($item['main_files'][$index], $getFileName . '.' . $extension);
                             $zip->close();
 
-                            $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/sample/" . $zipFileName), $zipFileName);
+                            $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
                         } else {
                             $uploadedMainFile = $item['main_files'][$index];
                         }
@@ -297,8 +297,8 @@ class ProductUploadService
                             throw new Exception($upload['message']);
                         }
 
-                        if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/sample/" . $zipFileName))) {
-                            unlink(storage_path("app/public/unzip/sample/" . $zipFileName));
+                        if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/stocklocal/" . $zipFileName))) {
+                            unlink(storage_path("app/public/unzip/stocklocal/" . $zipFileName));
                         }
                     } else {
                         if (isset($item['variation_id']) && isset($item['variation_id'][$index])) {
@@ -324,16 +324,16 @@ class ProductUploadService
                             $zipFileName = $getFileName . '.zip';
                             $zipFileName = str_replace(' ', '_', $zipFileName);
 
-                            if (!file_exists(storage_path("app/public/unzip/sample"))) {
-                                mkdir(storage_path("app/public/unzip/sample"), 0777, true);
+                            if (!file_exists(storage_path("app/public/unzip/stocklocal"))) {
+                                mkdir(storage_path("app/public/unzip/stocklocal"), 0777, true);
                             }
 
                             $zip = new ZipArchive();
-                            $zip->open(storage_path("app/public/unzip/sample/" . $zipFileName), ZipArchive::CREATE);
+                            $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
                             $zip->addFile($item['main_file'], $getFileName . '.' . $extension);
                             $zip->close();
 
-                            $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/sample/" . $zipFileName), $zipFileName);
+                            $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
                         } else {
                             $uploadedMainFile = $item['main_file'];
                         }
@@ -354,8 +354,8 @@ class ProductUploadService
                             throw new Exception($upload['message']);
                         }
 
-                        if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/sample/" . $zipFileName))) {
-                            unlink(storage_path("app/public/unzip/sample/" . $zipFileName));
+                        if (isset($zipFileName) && file_exists(storage_path("app/public/unzip/stocklocal/" . $zipFileName))) {
+                            unlink(storage_path("app/public/unzip/stocklocal/" . $zipFileName));
                         }
                     }else{
                         $product->variations()->first()->update([
