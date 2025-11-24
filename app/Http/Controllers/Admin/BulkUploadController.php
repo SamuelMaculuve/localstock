@@ -177,7 +177,8 @@ private function deleteDirectory($dir)
 
     public function product_bulk_upload_confirm(Request $request)
     {
-        foreach ($request->items as $item) {
+        try {
+            foreach ($request->items as $item) {
             if($item['status'] == 1 && $item['file_name'] != ""){
                 $category = ProductCategory::find($item['category']);
                 if(!is_null($category)){
@@ -218,6 +219,10 @@ private function deleteDirectory($dir)
                 }
 
             }
+        }
+        } catch (Exception $e) {
+            Log::error('Bulk upload confirmation error: ', ['exception' => $e->getMessage()]);
+            return back()->with('error', __('Something Went Wrong'));
         }
 
         return redirect()->route('admin.product.bulk-upload.index')->with('success', __('Created Successfully'));
