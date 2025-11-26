@@ -9,6 +9,7 @@ use App\Models\ProductVariation;
 use App\Traits\ApiStatusTrait;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use ZipArchive;
 
@@ -34,6 +35,8 @@ class ProductUploadService
                 $customerId = auth()->id();
             }
 
+            // Log::info('Product Upload Service - Store Method: ', ['item' => $item, 'uploaded_by' => $uploadedBy, 'user_id' => $userId, 'customer_id' => $customerId]);
+
             $data = [
                 'title' => $item['title'],
                 'slug' => $slug,
@@ -52,6 +55,8 @@ class ProductUploadService
             ];
 
             $product = Product::create($data);
+
+            Log::info('Product created with ID: ', ['product_id' => $product->id]);
 
             if (isset($item['tags'])) {
                 foreach ($item['tags'] ?? [] as $tag) {
@@ -109,12 +114,13 @@ class ProductUploadService
                     /*End Main File (Zip)*/
                 }
             } else {
-                $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : $item['main_file'];
-
+                $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : current($item['main_files']);
+                // $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : current($item['main_files']);
+                foreach ($item['variations'] ?? [] as $index => $variation) {
                 /*File Manager Call upload for Main File (Zip)*/
-                $extension = pathinfo($item['main_file']->getClientOriginalName(), PATHINFO_EXTENSION);
+                $extension = pathinfo($item['main_files'][$index]->getClientOriginalName(), PATHINFO_EXTENSION);
                 if ($extension !== 'zip') {
-                    $getFileName = $item['main_file']->getClientOriginalName();
+                    $getFileName = $item['main_files'][$index]->getClientOriginalName();
                     $getFileName = pathinfo($getFileName, PATHINFO_FILENAME);
                     $zipFileName = $getFileName . '.zip';
                     $zipFileName = str_replace(' ', '_', $zipFileName);
@@ -125,13 +131,14 @@ class ProductUploadService
 
                     $zip = new ZipArchive();
                     $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
-                    $zip->addFile($item['main_file'], $getFileName . '.' . $extension);
+                    $zip->addFile($item['main_files'][$index], $getFileName . '.' . $extension);
                     $zip->close();
 
                     $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
                 } else {
-                    $uploadedMainFile = $item['main_file'];
+                    $uploadedMainFile = $item['main_files'][$index];
                 }
+            }
 
                 $newMainFile = new FileManager();
                 $upload = $newMainFile->upload('Product', $uploadedMainFile, $slug, null,false, true);
@@ -171,7 +178,7 @@ class ProductUploadService
                     if ($item['accessibility'] == DOWNLOAD_ACCESSIBILITY_TYPE_PAID) {
                         $upload_play_file = $new_file->upload('Product', $item['main_files'][0], $product->slug, null,false, false);
                     } else {
-                        $upload_play_file = $new_file->upload('Product', $item['main_file'], $product->slug, null,false, false);
+                        $upload_play_file = $new_file->upload('Product', $item['main_files'][0], $product->slug, null,false, false);
                     }
                 }
 
@@ -206,6 +213,7 @@ class ProductUploadService
             DB::commit();
             return $this->success([], __("Created successfully"));
         } catch (Exception $e) {
+            Log::info('Product upload error: ', ['exception' => $e->getMessage()]);
             DB::rollBack();
             return $this->failed([], $e->getMessage());
         }
