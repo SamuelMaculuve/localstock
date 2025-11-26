@@ -35,10 +35,8 @@ class ProductUploadService
                 $customerId = auth()->id();
             }
 
-            // Log::info('Product Upload Service - Store Method: ', ['item' => $item, 'uploaded_by' => $uploadedBy, 'user_id' => $userId, 'customer_id' => $customerId]);
-
             $data = [
-                'title' => $item['title'],
+                'title' => str_replace('"', '', $item['title']),
                 'slug' => $slug,
                 'description' => $item['description'] ?? "",
                 'accessibility' => $item['accessibility'],
