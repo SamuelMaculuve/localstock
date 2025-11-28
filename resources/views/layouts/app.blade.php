@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html class="no-js" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
+<style>
+    section.section-gap {
+        padding: 44px 0px !important;
+    }
+    @media screen and (max-width: 991px) {
+        .section-gap {
+            padding: 40px 0 !important;
+        }
+    }
+</style>
 @include('layouts.header')
 @php
   $productType = getProductType();
