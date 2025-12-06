@@ -69,6 +69,23 @@
                         </div>
 
                         <div class="">
+                            <label for="userType" class="zForm-label">{{__('Account Type')}}<span
+                                        class="text-primary">*</span></label>
+                            <select class="zForm-control" id="userType" name="user_type" required>
+                                <option value="">{{__('Select Account Type')}}</option>
+                                <option value="customer" {{ old('user_type') == 'customer' ? 'selected' : '' }}>
+                                    {{__('Simple User')}} - {{__('View and download free photos')}}
+                                </option>
+                                <option value="contributor" {{ old('user_type') == 'contributor' ? 'selected' : '' }}>
+                                    {{__('Contributor')}} - {{__('Upload and sell photos')}}
+                                </option>
+                            </select>
+                            @error('user_type')
+                            <span class="text-danger small">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="">
                             <div class="passShowHide">
                                 <label for="authPassword" class="zForm-label">Password<span
                                             class="text-primary">*</span></label>

@@ -26,6 +26,7 @@
                             <li class="nav-item"><a class="nav-link d-lg-none" href="{{route('frontend.pricing')}}">{{__('Pricing')}}</a></li>
                             <li class="nav-item"><a class="nav-link d-md-none" href="{{route('customer.products.create')}}">{{__('Upload')}}</a></li>
                             @guest
+                               <li class="nav-item"><a class="nav-link d-md-none" href="{{ route('register') }}">{{ __('Sign Up') }}</a></li>
                                <li class="nav-item"><a class="nav-link d-md-none" href="{{ route('login') }}">{{ __('Login') }}</a></li>
                             @endguest
 
@@ -99,6 +100,7 @@
                         </div>
                     @endif
                     @guest
+                        <a href="{{route('register')}}" class="fs-16 fw-400 lh-26 text-primary linkDefault-hover d-none d-md-block me-3">{{__('Sign Up')}}</a>
                         <a href="{{route('login')}}" class="zaiStock-btn zaiStock-hover d-none d-md-block">{{__('Login')}}</a>
                     @else
                         <!-- User -->
