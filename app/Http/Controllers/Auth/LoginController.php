@@ -44,6 +44,7 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+        $this->middleware('guest:admin_web')->except('logout');
     }
 
     /**
@@ -59,6 +60,7 @@ class LoginController extends Controller
 
     /**
      * Handle the login request for normal login.
+     * Tries to login as Customer first, then as Admin (User).
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
@@ -70,14 +72,15 @@ class LoginController extends Controller
         DB::beginTransaction();
 
         try {
-            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-                $user = Auth::user();
+            // Try to login as Customer first
+            if (Auth::guard('web')->attempt(['email' => $request->email, 'password' => $request->password])) {
+                $user = Auth::guard('web')->user();
 
                 if ($user->status == PENDING) {
-                    Auth::logout();
+                    Auth::guard('web')->logout();
                     return back()->with(['error' => __("Before login, please wait for approval.")]);
                 } elseif ($user->status == DISABLE || in_array($user->contributor_status, [CONTRIBUTOR_STATUS_HOLD, CONTRIBUTOR_STATUS_CANCELLED])) {
-                    Auth::logout();
+                    Auth::guard('web')->logout();
                     return back()->with(['error' => __("Your account has been disabled.")]);
                 } else {
                     $this->customerPlanAndLoginDeviceCheck($user);
@@ -87,6 +90,13 @@ class LoginController extends Controller
                     DB::commit();
                     return redirect($this->redirectTo)->with('success', __("Logged in successfully."));
                 }
+            }
+            // Try to login as Admin (User)
+            elseif (Auth::guard('admin_web')->attempt(['email' => $request->email, 'password' => $request->password])) {
+                $admin = Auth::guard('admin_web')->user();
+
+                DB::commit();
+                return redirect()->route('admin.dashboard')->with('success', __("Logged in successfully."));
             } else {
                 DB::rollBack();
                 return back()->withErrors(['email' => __("Invalid email or password.")]);
@@ -260,21 +270,50 @@ class LoginController extends Controller
 
     /**
      * Log the user out of the application.
+     * Handles both Customer and Admin logout.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    public function logout(Request $request)
+    {
+        // Check if user is logged in as admin
+        if (Auth::guard('admin_web')->check()) {
+            Auth::guard('admin_web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return $request->wantsJson()
+                ? new JsonResponse([], 204)
+                : redirect()->route('login')->with('success', __('Logged out successfully.'));
+        }
+        
+        // Handle customer logout
+        if (Auth::guard('web')->check()) {
+            $loginDevice = LoginDevice::where(['session_id' => session()->getId(), 'customer_id' => Auth::guard('web')->id()])->first();
+            if ($loginDevice) {
+                // Delete the device record
+                $loginDevice->delete();
+            }
+            
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return $request->wantsJson()
+            ? new JsonResponse([], 204)
+            : redirect('/')->with('success', __('Logged out successfully.'));
+    }
+
+    /**
+     * Log the user out of the application (legacy method for compatibility).
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
     public function loggedOut(Request $request)
     {
-        $loginDevice = LoginDevice::where(['session_id' => session()->getId(), 'customer_id' => Auth::id()])->first();
-        if ($loginDevice) {
-            // Delete the device record
-            $loginDevice->delete();
-        }
-
-        return $request->wantsJson()
-            ? new JsonResponse([], 204)
-            : redirect('/');
+        return $this->logout($request);
     }
 
 }

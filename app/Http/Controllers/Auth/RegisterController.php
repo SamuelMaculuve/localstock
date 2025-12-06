@@ -60,6 +60,7 @@ class RegisterController extends Controller
             'contact_number' => ['required', 'min:9', 'max:20'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:customers,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'user_type' => ['required', 'in:customer,contributor'],
         ]);
     }
 
@@ -71,6 +72,11 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        // Determine role and contributor_apply based on user_type
+        $userType = $data['user_type'] ?? 'customer';
+        $role = ($userType === 'contributor') ? CUSTOMER_ROLE_CONTRIBUTOR : CUSTOMER_ROLE_CUSTOMER;
+        $contributorApply = ($userType === 'contributor') ? CONTRIBUTOR_APPLY_YES : CONTRIBUTOR_APPLY_NO;
+        
         return Customer::create([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
@@ -81,7 +87,10 @@ class RegisterController extends Controller
             'email_verified_at' => now(),
             'password' => Hash::make($data['password']),
             'status' => (getOption('registration_approval') == 1) ? PENDING : ACTIVE,
-            'role' => 1, // Default customer role
+            'role' => $role,
+            'contributor_apply' => $contributorApply,
+            // If contributor, set status to pending for admin approval
+            'contributor_status' => ($userType === 'contributor') ? CONTRIBUTOR_STATUS_PENDING : CONTRIBUTOR_STATUS_CANCELLED,
         ]);
     }
 
@@ -124,10 +133,18 @@ class RegisterController extends Controller
             // If registration approval is required
             if (getOption('registration_approval') == 1) {
                 DB::commit();
-                return redirect()->route('login')->with('success', 'You are successfully registered. Our admin will approve the request.');
+                $message = 'You are successfully registered. Our admin will approve the request.';
+                if ($customer->role == CUSTOMER_ROLE_CONTRIBUTOR) {
+                    $message = 'You are successfully registered as a contributor. Our admin will review and approve your contributor request.';
+                }
+                return redirect()->route('login')->with('success', $message);
             } else {
                 DB::commit();
-                return redirect(route('login'))->with('success', 'You are successfully registered.');
+                $message = 'You are successfully registered.';
+                if ($customer->role == CUSTOMER_ROLE_CONTRIBUTOR) {
+                    $message = 'You are successfully registered as a contributor. Your contributor status is pending admin approval.';
+                }
+                return redirect(route('login'))->with('success', $message);
             }
         } catch (\Exception $e) {
             DB::rollBack();

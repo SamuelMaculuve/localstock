@@ -47,8 +47,10 @@ Route::get('auth/{provider}/callback', [LoginController::class, 'handleSocialLog
 
 // Admin Authentication and Routes
 Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
-    Route::get('login', [AdminLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [AdminLoginController::class, 'login']);
+    // Redirect admin login to main login page
+    Route::get('login', function() {
+        return redirect()->route('login');
+    })->name('login');
     Route::post('logout', [AdminLoginController::class, 'logout'])->name('logout');
 });
 
