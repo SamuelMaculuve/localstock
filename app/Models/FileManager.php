@@ -87,39 +87,35 @@ class FileManager extends Model
                     // V3: Read watermark
                     $watermark = $manager->read($watermarkPath);
 
-                    // Resize watermark (10% of main width - increased from 5% for better visibility)
-                    $wmWidth = (int)($image->width() * 0.10);
+                    // Resize watermark (15% of main width for good visibility)
+                    $wmWidth = (int)($image->width() * 0.15);
                     $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
                     
-                    // Ensure minimum size for visibility
-                    $minWidth = 100;
+                    // Ensure reasonable size - not too small, not too large
+                    $minWidth = 150;
+                    $maxWidth = (int)($image->width() * 0.30); // Max 30% of image width
                     if ($wmWidth < $minWidth) {
                         $wmWidth = $minWidth;
+                        $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
+                    } elseif ($wmWidth > $maxWidth) {
+                        $wmWidth = $maxWidth;
                         $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
                     }
 
                     // V3: Resize watermark
                     $watermark->resize($wmWidth, $wmHeight);
 
-                    // V3: Apply pattern using place() with alpha blending
-                    // Optimize: Limit watermark placement to avoid timeout on large images
-                    $maxWidth = min($image->width(), 4000); // Limit processing to 4000px width
-                    $maxHeight = min($image->height(), 4000); // Limit processing to 4000px height
-                    $stepX = max($wmWidth + 50, 150); // Reduced spacing for better coverage
-                    $stepY = max($wmHeight + 50, 150); // Reduced spacing for better coverage
+                    // Calculate center position
+                    $centerX = (int)(($image->width() - $wmWidth) / 2);
+                    $centerY = (int)(($image->height() - $wmHeight) / 2);
                     
-                    // Apply watermark in a grid pattern
-                    for ($x = 0; $x < $maxWidth; $x += $stepX) {
-                        for ($y = 0; $y < $maxHeight; $y += $stepY) {
-                            // Use place() method - it should handle alpha blending automatically
-                            $image->place($watermark, $x, $y);
-                        }
-                    }
+                    // Place single watermark in the center
+                    $image->place($watermark, $centerX, $centerY);
                     
                     Log::info('Watermark applied successfully', [
                         'watermark_size' => $wmWidth . 'x' . $wmHeight,
                         'image_size' => $image->width() . 'x' . $image->height(),
-                        'placements' => (int)(($maxWidth / $stepX) * ($maxHeight / $stepY))
+                        'position' => 'center (' . $centerX . ', ' . $centerY . ')'
                     ]);
 
                     // Save to temporary file
