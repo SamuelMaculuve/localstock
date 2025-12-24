@@ -138,6 +138,11 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
+        // Increase execution time for file uploads
+        set_time_limit(300); // 5 minutes
+        ini_set('max_execution_time', 300);
+        ini_set('memory_limit', '512M');
+        
         $data = $request->validated();
         $data['tags'] = $request->tags;
         $data['status'] = PRODUCT_STATUS_PENDING; // 2 means Pending
