@@ -19,6 +19,11 @@ class ProductUploadService
 
     public function store($item, $uploadedBy = 2)
     {
+        // Increase execution time for file processing
+        set_time_limit(300); // 5 minutes
+        ini_set('max_execution_time', 300);
+        ini_set('memory_limit', '512M');
+        
         DB::beginTransaction();
         try {
             if (Product::where('slug', getSlug($item['title']))->count() > 0) {
@@ -167,7 +172,10 @@ class ProductUploadService
                 $extension = pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION);
 
                 if (in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
-                    $upload = $new_file->upload('Product', $item['image'], $product->slug, null, getOption('watermark_status', false));
+                    // Convert watermark_status to boolean (it's stored as '1' or '0' string)
+                    $watermarkStatus = getOption('watermark_status', '0');
+                    $watermarkEnabled = ($watermarkStatus == '1' || $watermarkStatus == 1);
+                    $upload = $new_file->upload('Product', $item['image'], $product->slug, null, $watermarkEnabled);
                 } else {
                     throw new Exception(__('Invalid Thumbnail'));
                 }
