@@ -57,6 +57,10 @@ class FileManager extends Model
                 // V3: Use read() instead of make()
                 $image = $manager->read($file->getRealPath());
                 
+                // Store original dimensions for center calculation
+                $originalWidth = $image->width();
+                $originalHeight = $image->height();
+                
                 // Limit image dimensions for watermark processing to prevent timeout
                 $maxDimension = 4000;
                 if ($image->width() > $maxDimension || $image->height() > $maxDimension) {
@@ -105,17 +109,46 @@ class FileManager extends Model
                     // V3: Resize watermark
                     $watermark->resize($wmWidth, $wmHeight);
 
-                    // Calculate center position
-                    $centerX = (int)(($image->width() - $wmWidth) / 2);
-                    $centerY = (int)(($image->height() - $wmHeight) / 2);
-                    
-                    // Place single watermark in the center
-                    $image->place($watermark, $centerX, $centerY);
-                    
-                    Log::info('Watermark applied successfully', [
+                    // Tile watermark across the ENTIRE image with consistent spacing
+                    $imgWidth = $image->width();
+                    $imgHeight = $image->height();
+
+                    // Define a grid so it always covers the full image (not just the top)
+                    $cols = 5;
+                    $rows = 4;
+                    $stepX = (int)($imgWidth / $cols);
+                    $stepY = (int)($imgHeight / $rows);
+
+                    // Ensure the watermark fits inside the grid cell with clear gaps
+                    $maxWmWidth = (int)($stepX * 0.6);
+                    $maxWmHeight = (int)($stepY * 0.6);
+
+                    if ($wmWidth > $maxWmWidth) {
+                        $wmWidth = $maxWmWidth;
+                        $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
+                    }
+                    if ($wmHeight > $maxWmHeight) {
+                        $wmHeight = $maxWmHeight;
+                        $wmWidth = (int)($wmHeight * ($watermark->width() / $watermark->height()));
+                    }
+
+                    $watermark->resize($wmWidth, $wmHeight);
+
+                    $rowIndex = 0;
+                    // Start at y=0 to ensure a visible top row (not cropped off)
+                    for ($y = 0; $y <= $imgHeight + $wmHeight; $y += $stepY) {
+                        $offsetX = ($rowIndex % 2 === 0) ? 0 : (int)($stepX / 2);
+                        for ($x = (int)(-$wmWidth / 2) + $offsetX; $x <= $imgWidth + $wmWidth; $x += $stepX) {
+                            // Use explicit position to avoid mis-ordered parameters (Intervention v3)
+                            $image->place($watermark, 'top-left', $x, $y);
+                        }
+                        $rowIndex++;
+                    }
+
+                    Log::info('Tiled watermark applied successfully', [
                         'watermark_size' => $wmWidth . 'x' . $wmHeight,
-                        'image_size' => $image->width() . 'x' . $image->height(),
-                        'position' => 'center (' . $centerX . ', ' . $centerY . ')'
+                        'image_size' => $imgWidth . 'x' . $imgHeight,
+                        'step' => $stepX . 'x' . $stepY
                     ]);
 
                     // Save to temporary file
