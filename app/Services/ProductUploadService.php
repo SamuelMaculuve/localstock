@@ -138,6 +138,32 @@ class ProductUploadService
                 }
             }
 
+            if($uploadedBy == 2){
+                $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : $item['main_file'];
+
+                /*File Manager Call upload for Main File (Zip)*/
+                $extension = pathinfo($item['main_file']->getClientOriginalName(), PATHINFO_EXTENSION);
+                if ($extension !== 'zip') {
+                    $getFileName = $item['main_file']->getClientOriginalName();
+                    $getFileName = pathinfo($getFileName, PATHINFO_FILENAME);
+                    $zipFileName = $getFileName . '.zip';
+                    $zipFileName = str_replace(' ', '_', $zipFileName);
+
+                    if (!file_exists(storage_path("app/public/unzip/stocklocal"))) {
+                        mkdir(storage_path("app/public/unzip/stocklocal"), 0777, true);
+                    }
+
+                    $zip = new ZipArchive();
+                    $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
+                    $zip->addFile($item['main_file'], $getFileName . '.' . $extension);
+                    $zip->close();
+
+                    $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
+                } else {
+                    $uploadedMainFile = $item['main_file'];
+                }
+            }
+
                 $newMainFile = new FileManager();
                 $upload = $newMainFile->upload('Product', $uploadedMainFile, $slug, null,false, true);
 

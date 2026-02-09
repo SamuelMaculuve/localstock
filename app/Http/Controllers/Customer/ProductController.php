@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -142,7 +143,7 @@ class ProductController extends Controller
         $data['tags'] = $request->tags;
         $data['status'] = PRODUCT_STATUS_PENDING; // 2 means Pending
         $data['uploaded_by'] = 2; // 2 means Contributor
-
+        Log::info('Product Store Data: ', ['data' => $data ]);
         return $this->productUploadService->store($data, 2);
     }
 

@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\VersionUpdateController;
 use App\Http\Controllers\Admin\Auth\LoginController as AdminLoginController;
 use App\Models\Language;
+use App\Services\AI\NSFWService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
@@ -60,3 +61,11 @@ Route::get('storage-link', function () {
 
 Route::get('version-update', [VersionUpdateController::class, 'versionUpdate'])->name('version-update')->withoutMiddleware(['version.update']);
 Route::post('process-update', [VersionUpdateController::class, 'processUpdate'])->name('process-update')->withoutMiddleware(['version.update']);
+
+
+Route::get('/test-nsfw', function () {
+    $service = new NSFWService();
+    $image = storage_path('app/public/download.jpeg');
+
+    return $service->detect($image);
+});

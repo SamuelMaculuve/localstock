@@ -116,6 +116,8 @@ class FileManager extends Model
             $fileManager->size = $size;
             $fileManager->save();
 
+            dispatch(new \App\Jobs\ProcessImageAnalysis($fileManager));
+
             return [
                 'status' => true,
                 'file' => $fileManager,
@@ -191,5 +193,11 @@ class FileManager extends Model
         return null;
     }
 }
+
+public function analysis()
+{
+    return $this->hasOne(ContentAnalysis::class, 'file_id');
+}
+
 
 }
