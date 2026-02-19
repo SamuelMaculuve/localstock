@@ -1,4 +1,8 @@
 <style>
+    body {
+        font-family: "Kohinoor Bangla", -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    }
     :root {
         @if (getOption('app_color_design_type', 2) == 2)
         --primary: {{ getOption('app_primary_color', '#09a8f7') }};
