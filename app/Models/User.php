@@ -17,6 +17,9 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes, AuthenticationLoggable;
 
+    /** Guard for Spatie Permission (admin panel uses admin_web). */
+    protected $guard_name = 'admin_web';
+
     /**
      * The attributes that are mass assignable.
      *

@@ -32,17 +32,17 @@ class AddonMiddleware
                 Artisan::call('cache:clear');
 
                 // Check if the user is authenticated
-                if (Auth::check()) {
-                    // Check if the user is authenticated using the 'admin_web' guard
-                    if (Auth::guard('admin_web')->check() && Auth::guard('admin_web')->user()->can('manage_version_update')) {
+                if (Auth::guard('admin_web')->check()) {
+                    // Admin with permission is redirected to addon update; others continue to dashboard
+                    if (Auth::guard('admin_web')->user()->can('manage_version_update')) {
                         return redirect()->route('admin.addon.details', $addon);
-                    } else {
-                        Auth::logout();
-                        return redirect()->route('admin.login')->with('error', __('Please contact the Admin'));
                     }
-                } else {
+                    return $next($request);
+                }
+                if (Auth::check()) {
                     return redirect()->route('admin.login')->with('error', __('Please contact the Admin'));
                 }
+                return redirect()->route('admin.login')->with('error', __('Please contact the Admin'));
             }
         }
 

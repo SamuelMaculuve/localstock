@@ -39,13 +39,20 @@
                             <p class="msg"> {{ session('error') }}</p>
                         </div>
                     @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            @foreach ($errors->all() as $message)
+                                <p class="msg mb-0">{{ $message }}</p>
+                            @endforeach
+                        </div>
+                    @endif
                     <div class="authentication__item__content">
-                        <form action="{{ route('login') }}" method="post">
+                        <form action="{{ route('admin.login') }}" method="post">
                             @csrf
                             <div class="input__group mb-25">
                                 <label>{{ __('Email Address') }}</label>
                                 <div class="input-overlay">
-                                    <input type="text" name="email" id="email" placeholder="Enter email address">
+                                    <input type="text" name="email" id="email" placeholder="Enter email address" value="{{ old('email') }}">
                                     <div class="overlay">
                                         <img src="{{ asset('admin') }}/images/icons/mail.svg" alt="icon">
                                     </div>

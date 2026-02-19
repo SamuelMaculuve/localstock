@@ -46,10 +46,10 @@
                 <div class="user-content">
                     <div class="wrap">
                         <div class="img">
-                            <img src="{{ auth()->user()->image }}" alt="icon" class="rounded-circle"/>
+                            <img src="{{ auth()->guard('admin_web')->user()->image ?? asset('assets/images/no-image.jpg') }}" alt="icon" class="rounded-circle"/>
                         </div>
                     </div>
-                    <h4 class="text-start d-none d-md-block fs-13 fw-600 lh-16 text-title-color">{{auth()->user()->name}}</h4>
+                    <h4 class="text-start d-none d-md-block fs-13 fw-600 lh-16 text-title-color">{{ auth()->guard('admin_web')->user()->name ?? __('Admin') }}</h4>
                 </div>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdownItem-one">

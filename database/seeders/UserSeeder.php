@@ -28,6 +28,19 @@ class UserSeeder extends Seeder
 
         $this->command->info('✓ Admin criado: admin@localstock.com / senha: 123456');
 
+        // Criar Admin de teste (para testes)
+        $adminTest = User::firstOrCreate(
+            ['email' => 'test@localstock.com'],
+            [
+                'name' => 'Admin Teste',
+                'email' => 'test@localstock.com',
+                'password' => Hash::make('123456'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $this->command->info('✓ Admin Teste criado: test@localstock.com / senha: 123456');
+
         // Criar Customer Normal (Utilizador Simples)
         $customerNormal = Customer::firstOrCreate(
             ['email' => 'customer@localstock.com'],
@@ -140,6 +153,10 @@ class UserSeeder extends Seeder
         $this->command->info('');
         $this->command->info('ADMIN:');
         $this->command->info('  Email: admin@localstock.com');
+        $this->command->info('  Senha: 123456');
+        $this->command->info('');
+        $this->command->info('ADMIN TESTE:');
+        $this->command->info('  Email: test@localstock.com');
         $this->command->info('  Senha: 123456');
         $this->command->info('');
         $this->command->info('CUSTOMER NORMAL (Utilizador Simples):');

@@ -45,6 +45,6 @@ All javascript and jquery plugins activation
     /*---------------------------
     sidebar menu
     ---------------------------*/
-    $('#sidebar-menu').metisMenu();
+    $('#sidebarMenu').metisMenu();
 
 })(jQuery);
