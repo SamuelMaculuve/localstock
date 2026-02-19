@@ -19,10 +19,8 @@
                                 data-bs-dismiss="offcanvas" aria-label="Close"><i class="fa-solid fa-times"></i>
                         </button>
                         <ul class="navbar-nav justify-content-center flex-wrap cg-28 rg-10 w-100">
-                            @foreach($productType as $data)
-                                <li class="nav-item"><a class="nav-link" href="{{ route('frontend.product_category',$data->uuid) }}">{{ $data->name }}</a>
+                                <li class="nav-item"><a class="nav-link" href="{{ Config::get('APP_URL') . '/search-result?asset_type=all&search_key=' }}">Imagens</a>
                                 </li>
-                            @endforeach
                             <li class="nav-item"><a class="nav-link d-lg-none" href="{{route('frontend.pricing')}}">{{__('Pricing')}}</a></li>
                             <li class="nav-item"><a class="nav-link d-md-none" href="{{route('customer.products.create')}}">{{__('Upload')}}</a></li>
                             @guest
