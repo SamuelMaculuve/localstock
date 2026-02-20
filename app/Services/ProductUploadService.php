@@ -54,7 +54,7 @@ class ProductUploadService
 
             $product = Product::create($data);
 
-            Log::info('Product created with ID: ', ['product_id' => $product->id]);
+            Log::info('Product created with ID: ', ['product_id' => $product->id, 'acessibility' => $item['accessibility']]);
 
             if (isset($item['tags'])) {
                 foreach ($item['tags'] ?? [] as $tag) {
@@ -114,9 +114,12 @@ class ProductUploadService
             } else {
                 $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : current($item['main_files']);
                 // $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : current($item['main_files']);
+
+                if(array_key_exists('variations', $item)){
                 foreach ($item['variations'] ?? [] as $index => $variation) {
                 /*File Manager Call upload for Main File (Zip)*/
                 $extension = pathinfo($item['main_files'][$index]->getClientOriginalName(), PATHINFO_EXTENSION);
+                Log::info('Main file extension: ', ['extension' => $extension]);
                 if ($extension !== 'zip') {
                     $getFileName = $item['main_files'][$index]->getClientOriginalName();
                     $getFileName = pathinfo($getFileName, PATHINFO_FILENAME);
@@ -136,7 +139,28 @@ class ProductUploadService
                 } else {
                     $uploadedMainFile = $item['main_files'][$index];
                 }
-            }
+            }}else{
+                    $extension = pathinfo($item['main_file']->getClientOriginalName(), PATHINFO_EXTENSION);
+                if ($extension !== 'zip') {
+                    $getFileName = $item['main_file']->getClientOriginalName();
+                    $getFileName = pathinfo($getFileName, PATHINFO_FILENAME);
+                    $zipFileName = $getFileName . '.zip';
+                    $zipFileName = str_replace(' ', '_', $zipFileName);
+
+                    if (!file_exists(storage_path("app/public/unzip/stocklocal"))) {
+                        mkdir(storage_path("app/public/unzip/stocklocal"), 0777, true);
+                    }
+
+                    $zip = new ZipArchive();
+                    $zip->open(storage_path("app/public/unzip/stocklocal/" . $zipFileName), ZipArchive::CREATE);
+                    $zip->addFile($item['main_file'], $getFileName . '.' . $extension);
+                    $zip->close();
+
+                    $uploadedMainFile = new UploadedFile(storage_path("app/public/unzip/stocklocal/" . $zipFileName), $zipFileName);
+                } else {
+                    $uploadedMainFile = $item['main_file'];
+                }
+                }
 
             if($uploadedBy == 2){
                 $item['image'] = isset($item['thumbnail_image']) && $item['thumbnail_image'] != "" ? $item['thumbnail_image'] : $item['main_file'];
@@ -191,8 +215,8 @@ class ProductUploadService
                 /*File Manager Call upload for Thumbnail Image*/
                 $new_file = new FileManager();
                 $extension = pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION);
-
-                if (in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
+                Log::info('Thumbnail extension: ', ['extension' => $extension]);
+                if (in_array(strtolower($extension), ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
                     $upload = $new_file->upload('Product', $item['image'], $product->slug, null, getOption('watermark_status', false));
                 } else {
                     throw new Exception(__('Invalid Thumbnail'));
@@ -423,7 +447,7 @@ class ProductUploadService
                 $new_file = new FileManager();
                 $extension = pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION);
 
-                if (in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
+                if (in_array(strtolower($extension), ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
                     $upload = $new_file->upload('Product', $item['image'], $product->slug, null, getOption('watermark_status', false));
                 } else {
                     throw new Exception(__('Invalid Thumbnail'));
