@@ -13,6 +13,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProcessImageAnalysis implements ShouldQueue
@@ -27,28 +28,23 @@ class ProcessImageAnalysis implements ShouldQueue
     }
 
     public function handle(
-        NSFWService $nsfw,
-        ViolenceDetectionService $violence,
-        CLIPService $clip
+        NSFWService $nsfw
     ) {
+        Log::error("Starting image analysis for file ID: {$this->file->path}");
         $fullPath = Storage::disk(config('app.STORAGE_DRIVER'))->path($this->file->path);
-
         // Run models
         $nsfwScore = $nsfw->detect($fullPath);
-        $violenceScore = $violence->detect($fullPath);
-        $embedding = $clip->embed($fullPath);
-
-        // Duplicate detection
-        $duplicateId = $this->findDuplicate($embedding);
+        // $violenceScore = $violence->detect($fullPath);
+        // $embedding = $clip->embed($fullPath);
+        Log::error("NSFW message", ['nsfw_score' => $nsfwScore]);
+        // // Duplicate detection
+        // $duplicateId = $this->findDuplicate($embedding);
 
         // Save results
         ContentAnalysis::create([
             'file_id'        => $this->file->id,
             'nsfw_score'     => $nsfwScore,
-            'violence_score' => $violenceScore,
-            'clip_embedding' => json_encode($embedding),
-            'duplicate_of'   => $duplicateId,
-            'is_safe'        => $nsfwScore < 0.25 && $violenceScore < 0.25,
+            'is_safe'        => $nsfwScore < 0.25
         ]);
     }
 
