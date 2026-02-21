@@ -43,4 +43,13 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
+    /*
+    | Hugging Face API (NSFW / violence detection, etc.)
+    | Set HUGGINGFACE_SSL_VERIFY=false only in local/dev if you get cURL error 60
+    | (e.g. Windows without CA bundle). In production use true and fix CA bundle in php.ini.
+    */
+    'huggingface' => [
+        'ssl_verify' => env('HUGGINGFACE_SSL_VERIFY', true),
+    ],
+
 ];

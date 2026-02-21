@@ -116,6 +116,8 @@ class ProductController extends Controller
      */
     public function create()
     {
+        dd(Auth::user()->can('add_new_product'));
+        
         if (!Auth::user()->can('add_new_product')) {
             abort('403');
         }

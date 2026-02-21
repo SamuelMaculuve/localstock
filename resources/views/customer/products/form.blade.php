@@ -1,5 +1,5 @@
 <div class="row rg-20">
-    <input type="hidden" name="status" value="{{$product->status ?? PRODUCT_STATUS_PENDING}}">
+    <input type="hidden" name="status" value="{{ $product?->status ?? PRODUCT_STATUS_PENDING }}">
     <div class="col-xl-6">
         <!-- Product Detail -->
         <div
@@ -11,7 +11,7 @@
                         <label for="title" class="zForm-label">{{__('Product Title')}}
                             <span
                                 class="text-primary">*</span></label>
-                        <input value="{{$product->title ?? ''}}" type="text" id="title" name="title"
+                        <input value="{{ $product?->title ?? '' }}" type="text" id="title" name="title"
                                class="zForm-control"
                                placeholder="{{__('Enter title')}}"/>
                     </div>
@@ -27,7 +27,7 @@
                             <option value="">{{__('Select Type')}}</option>
                             @foreach($productTypes as $type)
                                 <option
-                                    {{($product->product_type_id ?? null) == $type->id ? 'selected' : ''}} value="{{$type->id}}">{{$type->name}}</option>
+                                    {{ ($product?->product_type_id ?? null) == $type->id ? 'selected' : '' }} value="{{$type->id}}">{{$type->name}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -43,7 +43,7 @@
                             <option value="">{{__('Select Category')}}</option>
                             @foreach($product_categories ?? [] as $category)
                                 <option
-                                    {{$product->product_category_id == $category->id ? 'selected' : ''}} value="{{$category->id}}">{{$category->name}}</option>
+                                    {{ ($product?->product_category_id ?? null) == $category->id ? 'selected' : '' }} value="{{$category->id}}">{{$category->name}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -58,7 +58,7 @@
                             <option value="">{{__('Select File Type')}}</option>
                             @foreach($file_types ?? [] as $type)
                                 <option
-                                    {{$product->file_types == $type->name ? 'selected' : ''}} value="{{$type->name}}">{{$type->title}}</option>
+                                    {{ ($product?->file_types ?? null) == $type->name ? 'selected' : '' }} value="{{$type->name}}">{{$type->title}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -83,7 +83,7 @@
                             <option value="">{{__('Select Tax')}}</option>
                             @foreach($taxes as $tax)
                                 <option
-                                    {{($product->tax_id ?? null) == $tax->id ? 'selected' : ''}}  value="{{$tax->id}}">{{$tax->name}}</option>
+                                    {{ ($product?->tax_id ?? null) == $tax->id ? 'selected' : '' }}  value="{{$tax->id}}">{{$tax->name}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -99,7 +99,7 @@
                     <label for="description"
                            class="zForm-label">{{__('Description')}}</label>
                     <textarea name="description" class="summernoteOne"
-                              placeholder="{{__('Write something here....')}}">{{$product->description ?? ''}}</textarea>
+                              placeholder="{{__('Write something here....')}}">{{ $product?->description ?? '' }}</textarea>
                 </li>
             </ul>
         </div>
@@ -142,29 +142,29 @@
                         <input type="radio" name="accessibility"
                                value="{{DOWNLOAD_ACCESSIBILITY_TYPE_FREE}}"
                                class="form-check-input"
-                               id="freeLicenseLable" {{ ($product->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'checked' : '' }}/>
-                        <label class="nav-link {{ ($product->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'active' : '' }}" for="freeLicenseLable"
+                               id="freeLicenseLable" {{ ($product?->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'checked' : '' }}/>
+                        <label class="nav-link {{ ($product?->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'active' : '' }}" for="freeLicenseLable"
                                id="free-tab"
                                data-bs-toggle="tab" data-bs-target="#free-tab-pane"
                                role="tab" aria-controls="free-tab-pane"
-                               aria-selected="{{ ($product->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'true' : 'false' }}">{{__('Free')}}</label>
+                               aria-selected="{{ ($product?->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'true' : 'false' }}">{{__('Free')}}</label>
                     </li>
                     <li class="nav-item zForm-wrap-radio" role="presentation">
                         <input type="radio" name="accessibility"
                                value="{{DOWNLOAD_ACCESSIBILITY_TYPE_PAID}}"
                                class="form-check-input"
-                               id="paidLicenseLable" {{ ($product->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'checked' : '' }}/>
-                        <label class="nav-link {{ ($product->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'active' : '' }}" for="paidLicenseLable" id="paid-tab"
+                               id="paidLicenseLable" {{ ($product?->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'checked' : '' }}/>
+                        <label class="nav-link {{ ($product?->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'active' : '' }}" for="paidLicenseLable" id="paid-tab"
                                data-bs-toggle="tab" data-bs-target="#paid-tab-pane"
                                role="tab" aria-controls="paid-tab-pane"
-                               aria-selected="{{ ($product->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'true' : 'false' }}">{{__('Paid')}}</label>
+                               aria-selected="{{ ($product?->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'true' : 'false' }}">{{__('Paid')}}</label>
                     </li>
                 </ul>
             </div>
             <div class="tab-content" id="myTabContent">
                 <!-- Free -->
                 <div
-                    class="tab-pane fade {{ ($product->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'show active' : '' }}"
+                    class="tab-pane fade {{ ($product?->accessibility ?? PRODUCT_ACCESSIBILITY_FREE) == PRODUCT_ACCESSIBILITY_FREE ? 'show active' : '' }}"
                     id="free-tab-pane"
                     role="tabpanel"
                     aria-labelledby="free-tab" tabindex="0">
@@ -180,7 +180,7 @@
                                         value="">{{__('Select Use Option')}}</option>
                                     @foreach($useOptions as $useOption)
                                         <option
-                                            {{ ($product->use_this_photo ?? null) == $useOption->id ? 'selected' : '' }} value="{{ $useOption->id }}">{{ $useOption->name }}</option>
+                                            {{ ($product?->use_this_photo ?? null) == $useOption->id ? 'selected' : '' }} value="{{ $useOption->id }}">{{ $useOption->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -208,7 +208,7 @@
                     <div class="zCheck form-switch d-flex align-items-center g-10">
                         <input class="form-check-input mt-0" name="attribution_required"
                                value="1"
-                               {{ ($product->attribution_required ?? null) == ACTIVE ? 'checked' : '' }} type="checkbox"
+                               {{ ($product?->attribution_required ?? null) == ACTIVE ? 'checked' : '' }} type="checkbox"
                                role="switch"
                                id="attributionRequired"/>
                         <label for="attributionRequired">{{__('Attribution required')}}</label>
@@ -216,24 +216,24 @@
                 </div>
                 <!-- Paid -->
                 <div
-                    class="tab-pane fade {{ ($product->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'show active' : '' }}"
+                    class="tab-pane fade {{ ($product?->accessibility ?? '') == DOWNLOAD_ACCESSIBILITY_TYPE_PAID ? 'show active' : '' }}"
                     id="paid-tab-pane" role="tabpanel"
                     aria-labelledby="paid-tab" tabindex="0">
                     <ul class="zList-pb-10" id="variation-block">
-                        @foreach($product->variations ?? [[]] as $variation)
-                            <input type="hidden" name="variation_id[]" value="{{ $variation->id ?? '' }}">
+                        @foreach($product?->variations ?? [null] as $variation)
+                            <input type="hidden" name="variation_id[]" value="{{ $variation?->id ?? '' }}">
                             <li class="variation-item">
                                 <div class="licensePaid-item zaiStock-shadow-one">
                                     <div class="variationFields">
                                         <div class="left">
                                             <div>
                                                 <input type="text" name="variations[]"
-                                                       value="{{ $variation->variation ?? '' }}"
+                                                       value="{{ $variation?->variation ?? '' }}"
                                                        placeholder="{{__('Variation')}}"
                                                        class="variations zForm-control"/>
                                             </div>
                                             <div>
-                                                <input type="text" name="prices[]" value="{{ $variation->price ?? '' }}"
+                                                <input type="text" name="prices[]" value="{{ $variation?->price ?? '' }}"
                                                        placeholder="{{__('Price')}}"
                                                        class="prices zForm-control"/>
                                             </div>
@@ -256,7 +256,7 @@
                                     <div>
                                         <label class="zForm-label">{{__('Upload File')}}
                                             <span class="text-primary">*</span>
-                                            @if(isset($product) && $variation->file)
+                                            @if(isset($product) && $variation?->file)
                                                 <a class="fs-12" href=" {{ getFileUrl($variation->file) }}"
                                                    target="_blank">{{__('View')}}</a>
                                             @endif

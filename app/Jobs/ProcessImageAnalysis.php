@@ -56,7 +56,7 @@ class ProcessImageAnalysis implements ShouldQueue
     {
         $threshold = 0.90;
 
-        $images = ContentAnalysis::select('id', 'clip_embedding', 'image_id')->get();
+        $images = ContentAnalysis::select('id', 'clip_embedding', 'file_id')->get();
 
         foreach ($images as $img) {
             $existing = json_decode($img->clip_embedding);
@@ -64,7 +64,7 @@ class ProcessImageAnalysis implements ShouldQueue
             $similarity = $this->cosineSimilarity($existing, $newEmbedding);
 
             if ($similarity >= $threshold) {
-                return $img->image_id; // duplicate found
+                return $img->file_id; // duplicate found
             }
         }
 

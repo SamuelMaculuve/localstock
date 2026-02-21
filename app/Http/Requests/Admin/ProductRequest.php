@@ -44,13 +44,18 @@ class ProductRequest extends FormRequest
         ];
 
 
-        if(request()->get('accessibility') == 1){
-            $variation_ids = request()->get('variation_id');
-            foreach(request()->get('variations') as $index => $variation){
-                $rules['variations.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|min:1';
-                $rules['prices.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|numeric|min:'. $min .'|max:'. $max;
-                $rules['main_files.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|exclude_if:file_types,Other|mimes:'.request()->get('file_types');
-                $rules['variation_id.'.$index] = 'bail|nullable';
+        if ((int) request()->get('accessibility') === 1) {
+            $variations = request()->get('variations');
+            if (is_array($variations)) {
+                $variation_ids = request()->get('variation_id') ?? [];
+                foreach ($variations as $index => $variation) {
+                    $rules['variations.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|min:1';
+                    $rules['prices.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|numeric|min:'. $min .'|max:'. $max;
+                    $rules['main_files.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|exclude_if:file_types,Other|mimes:'.request()->get('file_types');
+                    $rules['variation_id.'.$index] = 'bail|nullable';
+                }
+            } else {
+                $rules['variations'] = 'bail|required|array|min:1';
             }
         }
 

@@ -9,6 +9,8 @@ class ContentAnalysis extends Model
 {
     use HasFactory;
 
+    protected $table = 'content_analysis';
+
     protected $fillable = [
         'file_id',
         'nsfw_score',
