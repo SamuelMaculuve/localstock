@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Newsletter;
 use App\Models\Referral;
 use App\Providers\RouteServiceProvider;
+use Exception;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RegisterController extends Controller
 {
@@ -119,6 +122,15 @@ class RegisterController extends Controller
                 $referral->parent_customer_id = $referredCustomer->id;
                 $referral->child_customer_id = $customer->id;
                 $referral->save();
+            }
+
+            try {
+                $newsletter = new Newsletter();
+                $newsletter->email = $customer->email;
+                $newsletter->save();
+            } catch (Exception $e) {
+                // Handle exception if needed, but we don't want to fail registration due to newsletter issues
+                Log::error('Failed to subscribe to newsletter: ' . $e->getMessage());
             }
 
             // If registration approval is required
