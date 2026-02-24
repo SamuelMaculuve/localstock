@@ -8,6 +8,7 @@ use App\Models\Newsletter;
 use App\Models\Referral;
 use App\Providers\RouteServiceProvider;
 use Exception;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -81,7 +82,7 @@ class RegisterController extends Controller
             'slug' => \Str::slug($data['first_name'] . '-' . $data['last_name']),
             'contact_number' => $data['contact_number'],
             'email' => $data['email'],
-            'email_verified_at' => now(),
+            'email_verified_at' => null,
             'password' => Hash::make($data['password']),
             'status' => (getOption('registration_approval') == 1) ? PENDING : ACTIVE,
             'role' => 1, // Default customer role
@@ -128,6 +129,12 @@ class RegisterController extends Controller
                 $newsletter = new Newsletter();
                 $newsletter->email = $customer->email;
                 $newsletter->save();
+
+                event(new Registered($customer));
+
+
+
+                $customer->sendEmailVerificationNotification();
             } catch (Exception $e) {
                 // Handle exception if needed, but we don't want to fail registration due to newsletter issues
                 Log::error('Failed to subscribe to newsletter: ' . $e->getMessage());

@@ -6,9 +6,11 @@ use App\Http\Controllers\VersionUpdateController;
 use App\Http\Controllers\Admin\Auth\LoginController as AdminLoginController;
 use App\Models\Language;
 use App\Services\AI\NSFWService;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -69,3 +71,13 @@ Route::get('/test-nsfw', function () {
 
     return $service->detect($image);
 });
+
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    Log::info('Email verified for user ID: ', ['user_id' => $request->user()->id, 'email' => $request->user()->email]);
+    return redirect('/customer/profile')->with('success', 'Your email has been verified. You can now login.');
+})->middleware(['auth', 'signed'])->name('verification.verify');
