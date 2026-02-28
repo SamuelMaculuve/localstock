@@ -51,8 +51,15 @@
                         <div class="">
                             <label for="phoneNumber" class="zForm-label">Phone Number<span
                                         class="text-primary">*</span></label>
-                            <input type="text" class="zForm-control" id="phoneNumber" name="contact_number"
-                                   placeholder="(+880) 5444 96588" value="{{ old('contact_number') }}"/>
+                            <div class="input-group">
+                                <span class="input-group-text">+258</span>
+                                <input type="text"
+                                    class="form-control"
+                                    id="phoneNumber"
+                                    name="contact_number"
+                                    placeholder="84 123 4567"
+                                    value="{{ old('contact_number') }}" maxlength="9">
+                            </div>
                             @error('contact_number')
                             <span class="text-danger small">{{ $message }}</span>
                             @enderror

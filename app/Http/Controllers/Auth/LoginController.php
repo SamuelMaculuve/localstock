@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -266,6 +267,7 @@ class LoginController extends Controller
      */
     public function loggedOut(Request $request)
     {
+        Log::info('User logged out: ' . Auth::id());
         $loginDevice = LoginDevice::where(['session_id' => session()->getId(), 'customer_id' => Auth::id()])->first();
         if ($loginDevice) {
             // Delete the device record

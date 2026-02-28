@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Newsletter;
 use App\Models\Referral;
 use App\Providers\RouteServiceProvider;
+use Exception;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RegisterController extends Controller
 {
@@ -78,7 +82,7 @@ class RegisterController extends Controller
             'slug' => \Str::slug($data['first_name'] . '-' . $data['last_name']),
             'contact_number' => $data['contact_number'],
             'email' => $data['email'],
-            'email_verified_at' => now(),
+            'email_verified_at' => null,
             'password' => Hash::make($data['password']),
             'status' => (getOption('registration_approval') == 1) ? PENDING : ACTIVE,
             'role' => 1, // Default customer role
@@ -119,6 +123,21 @@ class RegisterController extends Controller
                 $referral->parent_customer_id = $referredCustomer->id;
                 $referral->child_customer_id = $customer->id;
                 $referral->save();
+            }
+
+            try {
+                $newsletter = new Newsletter();
+                $newsletter->email = $customer->email;
+                $newsletter->save();
+
+                event(new Registered($customer));
+
+
+
+                $customer->sendEmailVerificationNotification();
+            } catch (Exception $e) {
+                // Handle exception if needed, but we don't want to fail registration due to newsletter issues
+                Log::error('Failed to subscribe to newsletter: ' . $e->getMessage());
             }
 
             // If registration approval is required
