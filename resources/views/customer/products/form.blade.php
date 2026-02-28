@@ -13,7 +13,8 @@
                                 class="text-primary">*</span></label>
                         <input value="{{$product->title ?? ''}}" type="text" id="title" name="title"
                                class="zForm-control"
-                               placeholder="{{__('Enter title')}}"/>
+                               placeholder="{{__('Enter title')}}"
+                               required/>
                     </div>
                 </li>
                 <li>
@@ -280,6 +281,6 @@
             </div>
         </div>
         <!-- Button -->
-        <button class="zaiStock-btn">{{__('Upload Product')}}</button>
+        <button type="submit" class="zaiStock-btn">{{__('Upload Product')}}</button>
     </div>
 </div>

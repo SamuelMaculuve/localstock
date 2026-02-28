@@ -14,6 +14,28 @@
                 <!--  -->
                 <div class="col-xl-9 col-lg-8 col-md-8">
                     <div class="admin-section-right">
+                        @if(auth()->user()->role == CUSTOMER_ROLE_CONTRIBUTOR && auth()->user()->contributor_status != CONTRIBUTOR_STATUS_APPROVED)
+                            <div class="alert alert-warning mb-20" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    </svg>
+                                    <div>
+                                        <strong>{{__('Contributor Status Pending')}}</strong>
+                                        <p class="mb-0 mt-1">{{__('Your contributor account is pending approval. Once approved by the administrator, you will be able to upload and sell photos.')}}</p>
+                                        @if(auth()->user()->contributor_status == CONTRIBUTOR_STATUS_PENDING)
+                                            <p class="mb-0 mt-1"><small>{{__('Status: Pending Approval')}}</small></p>
+                                        @elseif(auth()->user()->contributor_status == CONTRIBUTOR_STATUS_HOLD)
+                                            <p class="mb-0 mt-1"><small>{{__('Status: On Hold')}}</small></p>
+                                        @elseif(auth()->user()->contributor_status == CONTRIBUTOR_STATUS_CANCELLED)
+                                            <p class="mb-0 mt-1"><small>{{__('Status: Cancelled')}}</small></p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                         <div class="personalInfo-content">
                             <ul class="nav nav-tabs zTab-reset zTab-one flex-wrap flex-sm-nowrap" id="myTab"
                                 role="tablist">

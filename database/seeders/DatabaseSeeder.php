@@ -89,6 +89,13 @@ class DatabaseSeeder extends Seeder
             $this->command->error('✗ Error importing demo database: ' . $e->getMessage());
             $this->command->error('Error trace: ' . $e->getTraceAsString());
         }
+
+        // Criar usuários de teste DEPOIS do SQL (para não serem apagados)
+        $this->command->info('');
+        $this->command->info('═══════════════════════════════════════════════════════');
+        $this->command->info('  Criando usuários de teste...');
+        $this->command->info('═══════════════════════════════════════════════════════');
+        $this->call(UserSeeder::class);
     }
 
     private function is_valid_domain_name($url)

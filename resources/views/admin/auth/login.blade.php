@@ -40,7 +40,7 @@
                         </div>
                     @endif
                     <div class="authentication__item__content">
-                        <form action="{{ route('admin.login') }}" method="post">
+                        <form action="{{ route('login') }}" method="post">
                             @csrf
                             <div class="input__group mb-25">
                                 <label>{{ __('Email Address') }}</label>

@@ -52,7 +52,7 @@
                     <div class="bg-light border d-flex flex-column gap-2 mt-20 p-10 rounded text-center text-info">
                         <span id="customerCredentialShow" class="bd-b-one bd-c-stroke login-info pb-6"><b>Customer:</b> customer@gmail.com | 123456</span>
                         <span id="contributorCredentialShow" class="bd-b-one bd-c-stroke login-info pb-6"><b>Contributor:</b> contributor@gmail.com | 123456</span>
-                        <a class="login-info text-info" href="{{route('admin.login')}}">Admin Login</a>
+                        <span id="adminCredentialShow" class="bd-b-one bd-c-stroke login-info pb-6"><b>Admin:</b> Use admin credentials to login</span>
                     </div>
                 @endif
                 <!-- Alternative Auth Options -->
@@ -97,6 +97,10 @@
         $('#contributorCredentialShow').on('click', function () {
             $('#authEmail').val('contributor@gmail.com');
             $('#authPassword').val('123456');
+        });
+        $('#adminCredentialShow').on('click', function () {
+            // Admin credentials - user can fill manually or we can add if available
+            alert('{{__("Please enter your admin email and password")}}');
         });
     </script>
 @endpush
