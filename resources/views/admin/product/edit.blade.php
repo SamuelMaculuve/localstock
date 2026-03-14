@@ -173,6 +173,13 @@
                                 </select>
                             </div>
 
+                            <div class="col-md-6" id="attribution-required-block">
+                                <div class="zCheck form-switch">
+                                    <input class="form-check-input" {{ $product->is_featured == 1 ? 'checked' : 0 }} name="is_featured" type="checkbox" role="switch" value="1"/>
+                                    <label class="form-check-label" for="attribution_required">Destaque</label>
+                                </div>
+                            </div>
+
                             <div class="col-md-12">
                                 <label class="zForm-label">{{__('Description')}} </label>
                                 <textarea class="summernoteOne" rows=3 name="description">{{$product->description}}</textarea>

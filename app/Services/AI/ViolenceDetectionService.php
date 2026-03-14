@@ -11,4 +11,20 @@ class ViolenceDetectionService
     {
         return 0.0;
     }
+
+    /**
+     * Map file extension to MIME type.
+     */
+    private function getMimeFromExtension($extension)
+    {
+        $mimes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'bmp'  => 'image/bmp',
+            'webp' => 'image/webp',
+        ];
+        return $mimes[strtolower($extension)] ?? 'application/octet-stream';
+    }
 }

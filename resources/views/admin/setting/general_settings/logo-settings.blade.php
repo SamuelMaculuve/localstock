@@ -194,6 +194,21 @@
                             </div>
                         </div>
 
+                        <div class="row rg-15 mt-20">
+                            <div class="col-xl-12">
+                                <div class="primary-form-group">
+                                    <label for="watermark_status" class="zForm-label">{{ __('Watermark Status') }} <span class="text-danger">*</span></label>
+                                    <select name="watermark_status" id="watermark_status" class="form-select select2">
+                                        <option value="1" {{ getOption('watermark_status') == 1 ? 'selected':'' }}>{{ __('Active') }}</option>
+                                        <option value="0" {{ getOption('watermark_status') == 0 ? 'selected':'' }}>{{ __('Deactivate') }}</option>
+                                    </select>
+                                    <p class="mt-10 text-muted">
+                                        <small>{{ __('Enable or disable watermark on product thumbnails') }}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="bd-c-stroke bd-t-one d-flex justify-content-end align-items-center pt-24 mt-24">
                             <button type="submit"
                                     class="border-0 bd-ra-12 bg-primary py-13 px-25 fs-16 fw-600 lh-19 text-white">{{ __('Update') }}</button>

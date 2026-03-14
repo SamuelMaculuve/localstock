@@ -20,9 +20,19 @@ class FileManager extends Model
     public function upload($to, $file, $name = null, $id = null, $is_watermark = false, $is_main_file = false)
     {
         try {
+            // Increase execution time for image processing
+            set_time_limit(300); // 5 minutes
+            ini_set('max_execution_time', 300);
+            ini_set('memory_limit', '512M');
+            
             $originalName = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
             $size = $file->getSize();
+            
+            // Check file size (limit to 50MB for processing)
+            if ($size > 50 * 1024 * 1024) {
+                throw new \Exception('File size exceeds 50MB limit');
+            }
 
             $file_name = $name
                 ? $name . '-' . time() . rand(100000, 9999999) . '.' . $extension
@@ -35,11 +45,23 @@ class FileManager extends Model
             // ---------------------------------------------------------------------
             // WATERMARK LOGIC
             // ---------------------------------------------------------------------
-            if ($is_watermark && getOption('water_mark_img') && !$is_main_file) {
+            // Check if watermark should be applied
+            // $is_watermark is boolean, getOption('water_mark_img') returns path or null
+            $watermarkImage = getOption('water_mark_img');
+            if ($is_watermark && !empty($watermarkImage) && !$is_main_file) {
 
             try {
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($file->getRealPath());
+                
+                // Limit image dimensions for watermark processing to prevent timeout
+                $maxDimension = 4000;
+                if ($image->width() > $maxDimension || $image->height() > $maxDimension) {
+                    $scale = min($maxDimension / $image->width(), $maxDimension / $image->height());
+                    $newWidth = (int)($image->width() * $scale);
+                    $newHeight = (int)($image->height() * $scale);
+                    $image->resize($newWidth, $newHeight);
+                }
 
                 $watermarkPath = $this->getWatermarkImage();
                 if (empty($watermarkPath) || !file_exists($watermarkPath)) {
