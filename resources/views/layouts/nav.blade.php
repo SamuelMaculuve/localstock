@@ -20,7 +20,7 @@
                         </button>
                         <ul class="navbar-nav justify-content-center flex-wrap cg-28 rg-10 w-100">
                             @foreach($productType as $data)
-                                <li class="nav-item"><a class="nav-link" href="{{ route('frontend.product_category',$data->uuid) }}">{{ $data->name }}</a>
+                                <li class="nav-item"><a class="nav-link" href="{{ route('frontend.product_category',$data->uuid) }}">{{ __($data->name) }}</a>
                                 </li>
                             @endforeach
                             <li class="nav-item"><a class="nav-link d-lg-none" href="{{route('frontend.pricing')}}">{{__('Pricing')}}</a></li>
