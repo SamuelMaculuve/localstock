@@ -64,7 +64,7 @@
                                                     <textarea type="text" name="value" class="val zForm-control">{!! $value !!}</textarea>
                                                 </td>
                                                 <td class="text-end col-1">
-                                                    <button type="button" disabled
+                                                    <button type="button"
                                                         class="language-update border-0 bg-primary py-8 px-26 bd-ra-8 fs-15 fw-600 lh-25 text-white">{{ __('Update') }}</button>
                                                 </td>
                                             </tr>

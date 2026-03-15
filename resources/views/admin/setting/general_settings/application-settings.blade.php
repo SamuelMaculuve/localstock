@@ -60,7 +60,9 @@
                                 <label class="zForm-label">{{ __('App Copyright') }} <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="app_copyright" value="{{ getOption('app_copyright') }}"
-                                       class="form-control zForm-control">
+                                       class="form-control zForm-control"
+                                       placeholder="Copyright © :year Nome do site. Todos os direitos reservados.">
+                                <small class="text-muted">{{ __('Use :year for the current year') }}</small>
                             </div>
                             <div class="col-xxl-4 col-lg-6 pt-3">
                                 <label class="zForm-label">{{ __('Footer News Letter Title') }} <span

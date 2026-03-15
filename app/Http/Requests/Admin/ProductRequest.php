@@ -18,6 +18,22 @@ class ProductRequest extends FormRequest
     }
 
     /**
+     * Contribuidor envia preços vazios para produtos pagos; normalizar para 0 para passar na validação.
+     */
+    protected function prepareForValidation()
+    {
+        if ($this->routeIs('customer.products.store', 'customer.products.update') && (int) $this->get('accessibility') === 1) {
+            $prices = $this->get('prices', []);
+            if (is_array($prices)) {
+                $prices = array_map(function ($p) {
+                    return $p === '' || $p === null ? 0 : $p;
+                }, $prices);
+                $this->merge(['prices' => $prices]);
+            }
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, mixed>
@@ -44,13 +60,17 @@ class ProductRequest extends FormRequest
         ];
 
 
+        $isContributorSubmit = request()->routeIs('customer.products.store', 'customer.products.update');
         if ((int) request()->get('accessibility') === 1) {
             $variations = request()->get('variations');
             if (is_array($variations)) {
                 $variation_ids = request()->get('variation_id') ?? [];
                 foreach ($variations as $index => $variation) {
                     $rules['variations.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|min:1';
-                    $rules['prices.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|numeric|min:'. $min .'|max:'. $max;
+                    // Contribuidor não define preço: admin define antes de publicar. Aceitar vazio no create/update do customer.
+                    $priceRequired = $isContributorSubmit ? 'nullable' : (!isset($variation_ids[$index]) ? 'required' : 'nullable');
+                    $priceMin = $isContributorSubmit ? 0 : $min;
+                    $rules['prices.'.$index] = 'bail|' . $priceRequired . '|numeric|min:'. $priceMin .'|max:'. $max;
                     $rules['main_files.'.$index] = 'bail|' . (!isset($variation_ids[$index]) ? 'required' : 'nullable' ) .'|exclude_if:file_types,Other|mimes:'.request()->get('file_types');
                     $rules['variation_id.'.$index] = 'bail|nullable';
                 }

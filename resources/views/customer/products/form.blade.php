@@ -234,9 +234,15 @@
                                                        class="variations zForm-control"/>
                                             </div>
                                             <div>
-                                                <input type="text" name="prices[]" value="{{ $variation?->price ?? '' }}"
-                                                       placeholder="{{__('Price')}}"
-                                                       class="prices zForm-control"/>
+                                                @if(!isset($product) || (isset($product) && $product->uploaded_by == PRODUCT_UPLOADED_BY_CONTRIBUTOR))
+                                                    {{-- Contribuidor não define preço; admin define em /admin/product/.../edit antes de publicar --}}
+                                                    <input type="hidden" name="prices[]" value="{{ $variation?->price ?? '' }}"/>
+                                                    <span class="text-muted small">{{ __('Price will be set by admin before publishing') }}</span>
+                                                @else
+                                                    <input type="text" name="prices[]" value="{{ $variation?->price ?? '' }}"
+                                                           placeholder="{{__('Price')}}"
+                                                           class="prices zForm-control"/>
+                                                @endif
                                             </div>
                                         </div>
                                         @if($loop->first)

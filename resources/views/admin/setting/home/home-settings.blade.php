@@ -123,7 +123,8 @@
                                            for="contributor_title">{{ __('Be A Contributor Title') }} </label>
                                     <input type="text" name="contributor_title" id="contributor_title"
                                            value="{{ getOption('contributor_title') }}" class="zForm-control"
-                                           placeholder="Type be a contributor title">
+                                           placeholder="Empower Creators Worldwide, Join :app_name as a Contributor.">
+                                    <small class="text-muted">{{ __('Use :app_name to insert the application name') }}</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="zForm-label"
@@ -131,6 +132,7 @@
                                     <input type="text" name="contributor_description" id="contributor_description"
                                            value="{{ getOption('contributor_description') }}" class="zForm-control"
                                            placeholder="Type be a contributor description">
+                                    <small class="text-muted">{{ __('Use :app_name to insert the application name') }}</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="assets_type_title"
