@@ -77,8 +77,9 @@ class FileManager extends Model
                 $wmHeight = (int) ($wmWidth * ($watermark->height() / max(1, $watermark->width())));
                 $watermark->resize($wmWidth, $wmHeight);
 
-                // Opacidade suave para não esconder a imagem real.
-                $opacity = 7;
+                // Opacidade configurável em Admin → Definições → Application Settings (1–100).
+                $opacity = (int) getOption('watermark_opacity', 7);
+                $opacity = max(1, min(100, $opacity));
 
                 // Grelha diagonal limpa: desloca metade do passo em linhas alternadas.
                 // Isso remove o efeito de colunas verticais.
