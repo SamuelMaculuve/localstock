@@ -191,6 +191,28 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, $uuid)
     {
+        $isPaid = (int) $request->get('accessibility') === PRODUCT_ACCESSIBILITY_PAID;
+        $statusPublished = (int) $request->get('status') === PRODUCT_STATUS_PUBLISHED;
+
+        // Não permitir publicar produto pago sem preço definido em todas as variações
+        if ($isPaid && $statusPublished) {
+            $prices = $request->get('prices', []);
+            $minPrice = (float) (getOption('product_price_min_limit') ?: 1);
+            foreach ($prices as $index => $price) {
+                $price = is_numeric($price) ? (float) $price : 0;
+                if ($price < $minPrice) {
+                    return back()->withInput()->withErrors([
+                        'prices.' . $index => __('Paid products must have a price set for all variations before publishing.'),
+                    ]);
+                }
+            }
+            if (empty($prices)) {
+                return back()->withInput()->withErrors([
+                    'prices' => __('Paid products must have at least one variation with a price before publishing.'),
+                ]);
+            }
+        }
+
         $data = $request->validated();
         $data['tags'] = $request->tags;
         $data['attribution_required'] = isset($data['attribution_required']) ? 1 : 0;
@@ -316,10 +338,17 @@ class ProductController extends Controller
 
     public function statusUpdate(Request $request, $id)
     {
-            $currency = Product::findOrfail($id);
-            $currency->status = $request->status;
-            $currency->save();
-            return redirect()->back()->with('success', __('Update Successfully'));
+        $product = Product::findOrFail($id);
+        if ((int) $request->status === PRODUCT_STATUS_PUBLISHED && (int) $product->accessibility === PRODUCT_ACCESSIBILITY_PAID) {
+            $minPrice = (float) (getOption('product_price_min_limit') ?: 1);
+            $withoutPrice = $product->variations()->whereRaw('(price IS NULL OR price < ?)', [$minPrice])->exists();
+            if ($withoutPrice || $product->variations()->count() === 0) {
+                return redirect()->back()->with('error', __('Paid products must have a price set for all variations before publishing. Set the price in the product edit page.'))->withInput();
+            }
+        }
+        $product->status = $request->status;
+        $product->save();
+        return redirect()->back()->with('success', __('Update Successfully'));
     }
 
     public function isFeatureUpdate(Request $request, $id)

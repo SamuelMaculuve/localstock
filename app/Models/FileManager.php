@@ -51,10 +51,7 @@ class FileManager extends Model
             if ($is_watermark && !empty($watermarkImage) && !$is_main_file) {
 
             try {
-                // V3: Initialize with driver instance
                 $manager = new ImageManager(new Driver());
-
-                // V3: Use read() instead of make()
                 $image = $manager->read($file->getRealPath());
                 
                 // Limit image dimensions for watermark processing to prevent timeout
@@ -66,80 +63,58 @@ class FileManager extends Model
                     $image->resize($newWidth, $newHeight);
                 }
 
-                // Get watermark path
                 $watermarkPath = $this->getWatermarkImage();
-                
-                Log::info('Watermark check:', [
-                    'is_watermark' => $is_watermark,
-                    'watermarkPath' => $watermarkPath,
-                    'file_exists' => $watermarkPath ? file_exists($watermarkPath) : false,
-                    'is_main_file' => $is_main_file
-                ]);
-
                 if (empty($watermarkPath) || !file_exists($watermarkPath)) {
-                    Log::warning('Watermark image not found, skipping watermark: ' . ($watermarkPath ?? 'null'));
-                    // Fallback to regular upload without watermark
-                    Storage::disk(config('app.STORAGE_DRIVER'))
-                        ->put($path, file_get_contents($file->getRealPath()));
-                    // Continue to save DB record - skip watermark processing
-                } else {
-                    Log::info('Applying watermark to image');
-                    // V3: Read watermark
-                    $watermark = $manager->read($watermarkPath);
+                    Log::warning('Watermark image not available, uploading without watermark');
+                    throw new \Exception('Watermark image not found');
+                }
 
-                    // Resize watermark (15% of main width for good visibility)
-                    $wmWidth = (int)($image->width() * 0.15);
-                    $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
-                    
-                    // Ensure reasonable size - not too small, not too large
-                    $minWidth = 150;
-                    $maxWidth = (int)($image->width() * 0.30); // Max 30% of image width
-                    if ($wmWidth < $minWidth) {
-                        $wmWidth = $minWidth;
-                        $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
-                    } elseif ($wmWidth > $maxWidth) {
-                        $wmWidth = $maxWidth;
-                        $wmHeight = (int)($wmWidth * ($watermark->height() / $watermark->width()));
+                $watermark = $manager->read($watermarkPath);
+
+                // Mantemos a transparência original da imagem da marca (PNG recomendado).
+                // Evita artefactos visuais causados por remoção automática de fundo.
+                $wmWidth = (int) max(48, $image->width() * 0.12);
+                $wmHeight = (int) ($wmWidth * ($watermark->height() / max(1, $watermark->width())));
+                $watermark->resize($wmWidth, $wmHeight);
+
+                // Opacidade configurável em Admin → Definições → Application Settings (1–100).
+                $opacity = (int) getOption('watermark_opacity', 7);
+                $opacity = max(1, min(100, $opacity));
+
+                // Grelha diagonal limpa: desloca metade do passo em linhas alternadas.
+                // Isso remove o efeito de colunas verticais.
+                $spacingX = (int) max(70, $wmWidth * 1.45);
+                $spacingY = (int) max(60, $wmHeight * 1.30);
+                $row = 0;
+
+                for ($y = -$wmHeight; $y < $image->height() + $wmHeight; $y += $spacingY) {
+                    $rowOffset = (int) (($row % 2) * ($spacingX / 2));
+                    for ($x = -$wmWidth + $rowOffset; $x < $image->width() + $wmWidth; $x += $spacingX) {
+                        try {
+                            $image->place($watermark, 'top-left', $x, $y, $opacity);
+                        } catch (\Throwable $e) {
+                            // Fallback para API antiga se 'place' não aceitar 5 argumentos
+                            $image->place($watermark, $x, $y);
+                        }
                     }
+                    $row++;
+                }
 
-                    // V3: Resize watermark
-                    $watermark->resize($wmWidth, $wmHeight);
+                $tempPath = storage_path('app/temp/' . $file_name);
+                if (!file_exists(storage_path('app/temp'))) {
+                    mkdir(storage_path('app/temp'), 0777, true);
+                }
+                $image->save($tempPath);
 
-                    // Calculate center position
-                    $centerX = (int)(($image->width() - $wmWidth) / 2);
-                    $centerY = (int)(($image->height() - $wmHeight) / 2);
-                    
-                    // Place single watermark in the center
-                    $image->place($watermark, $centerX, $centerY);
-                    
-                    Log::info('Watermark applied successfully', [
-                        'watermark_size' => $wmWidth . 'x' . $wmHeight,
-                        'image_size' => $image->width() . 'x' . $image->height(),
-                        'position' => 'center (' . $centerX . ', ' . $centerY . ')'
-                    ]);
+                Storage::disk(config('app.STORAGE_DRIVER'))
+                    ->put($path, file_get_contents($tempPath));
 
-                    // Save to temporary file
-                    $tempPath = storage_path('app/temp/' . $file_name);
-                    if (!file_exists(storage_path('app/temp'))) {
-                        mkdir(storage_path('app/temp'), 0777, true);
-                    }
-
-                    // V3: Save the image
-                    $image->save($tempPath);
-
-                    // Store in final location
-                    Storage::disk(config('app.STORAGE_DRIVER'))
-                        ->put($path, file_get_contents($tempPath));
-
-                    // Clean up
-                    if (file_exists($tempPath)) {
-                        unlink($tempPath);
-                    }
-                } // End of watermark processing else block
+                if (file_exists($tempPath)) {
+                    unlink($tempPath);
+                }
 
             } catch (\Exception $e) {
                 Log::warning('Watermark failed, uploading original: ' . $e->getMessage());
-                // Fallback to regular upload
                 Storage::disk(config('app.STORAGE_DRIVER'))
                     ->put($path, file_get_contents($file->getRealPath()));
             }
@@ -187,49 +162,33 @@ class FileManager extends Model
 
     private function getWatermarkImage()
     {
-        try {
-            // Get watermark file ID from settings
-            $watermarkFileId = getOption('water_mark_img');
-            
-            if (empty($watermarkFileId)) {
-                Log::warning('Watermark file ID not found in settings');
-                return null;
-            }
-            
-            // Get FileManager record
-            $fileManager = FileManager::find($watermarkFileId);
-            
-            if (!$fileManager) {
-                Log::warning('Watermark FileManager record not found: ' . $watermarkFileId);
-                return null;
-            }
-            
-            // Check storage type and get file path
-            $storageDriver = config('app.STORAGE_DRIVER');
-            
-            if ($storageDriver == 'public' || $storageDriver == 'local') {
-                // For local storage, return the full path
-                $localPath = storage_path('app/public/' . $fileManager->path);
-                if (file_exists($localPath)) {
-                    return $localPath;
-                }
-                // Try alternative path
-                $localPath = public_path('storage/' . $fileManager->path);
-                if (file_exists($localPath)) {
-                    return $localPath;
-                }
-                Log::warning('Watermark file not found locally: ' . $fileManager->path);
-            } else {
-                // For S3/Wasabi, download from URL
-                $watermarkUrl = getSettingImage('water_mark_img');
-                return $this->downloadWatermarkFromUrl($watermarkUrl);
-            }
-            
-            return null;
-        } catch (\Exception $e) {
-            Log::error('Error getting watermark image: ' . $e->getMessage());
+        $fileManagerId = getOption('water_mark_img');
+        if (empty($fileManagerId)) {
             return null;
         }
+
+        $fileManager = self::find($fileManagerId);
+        if (!$fileManager) {
+            Log::warning('Watermark FileManager not found: ' . $fileManagerId);
+            return null;
+        }
+
+        $driver = config('app.STORAGE_DRIVER');
+        if ($driver === 'local' || $driver === 'public') {
+            $localPath = storage_path('app/public/' . $fileManager->path);
+            if (file_exists($localPath)) {
+                return $localPath;
+            }
+            $localPath = public_path('storage/' . $fileManager->path);
+            if (file_exists($localPath)) {
+                return $localPath;
+            }
+            Log::warning('Watermark file not found on disk: ' . $fileManager->path);
+            return null;
+        }
+
+        $url = getSettingImage('water_mark_img');
+        return $this->downloadWatermarkFromUrl($url);
     }
 
     public function removeFile()
@@ -242,68 +201,55 @@ class FileManager extends Model
     }
 
     protected function downloadWatermarkFromUrl($url)
-{
-    try {
-        // If URL is empty or null, return null
-        if (empty($url)) {
-            return null;
-        }
-        
-        // If URL is a local path, return it directly
-        if (file_exists($url)) {
-            return $url;
-        }
-        
-        $tempPath = storage_path('app/temp/watermark_' . md5($url) . '.png');
+    {
+        try {
+            if (empty($url)) {
+                return null;
+            }
 
-        // Create temp directory if it doesn't exist
-        if (!file_exists(storage_path('app/temp'))) {
-            mkdir(storage_path('app/temp'), 0755, true);
-        }
+            // Se for um path local (ex.: no-image ou path no servidor), devolver se existir
+            if (!preg_match('#^https?://#i', $url) && file_exists($url)) {
+                return $url;
+            }
 
-        // Check if we already have a cached version (less than 24 hours old)
-        if (file_exists($tempPath) && (time() - filemtime($tempPath)) < 86400) {
-            return $tempPath;
-        }
+            $tempPath = storage_path('app/temp/watermark_' . md5($url) . '.png');
 
-        // Download from URL using Guzzle or file_get_contents with context
-        $context = stream_context_create([
-            'ssl' => [
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-            ],
-            'http' => [
-                'timeout' => 10, // Reduced timeout to 10 seconds
-                'ignore_errors' => true
-            ]
-        ]);
+            if (!file_exists(storage_path('app/temp'))) {
+                mkdir(storage_path('app/temp'), 0755, true);
+            }
 
-        $watermarkContent = @file_get_contents($url, false, $context);
-
-        if ($watermarkContent === false) {
-            // If download fails, try to use cached version even if old
-            if (file_exists($tempPath)) {
-                Log::warning('Watermark download failed, using cached version: ' . $url);
+            if (file_exists($tempPath) && (time() - filemtime($tempPath)) < 3600) {
                 return $tempPath;
             }
-            throw new \Exception('Failed to download watermark from URL: ' . $url);
-        }
 
-        // Save to temporary file
-        file_put_contents($tempPath, $watermarkContent);
+            $context = stream_context_create([
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                ],
+                'http' => [
+                    'timeout' => 30,
+                    'ignore_errors' => true
+                ]
+            ]);
 
-        return $tempPath;
+            $watermarkContent = @file_get_contents($url, false, $context);
 
-    } catch (\Exception $e) {
-        Log::error('Error downloading watermark from URL: ' . $e->getMessage());
-        // Try to return cached version if exists
-        $tempPath = storage_path('app/temp/watermark_' . md5($url) . '.png');
-        if (file_exists($tempPath)) {
+            if ($watermarkContent === false) {
+                if (file_exists($tempPath)) {
+                    return $tempPath;
+                }
+                throw new \Exception('Failed to download watermark from URL');
+            }
+
+            file_put_contents($tempPath, $watermarkContent);
             return $tempPath;
+
+        } catch (\Exception $e) {
+            Log::error('Error downloading watermark from URL: ' . $e->getMessage());
+            return null;
         }
-        return null;
     }
-}
 
 public function analysis()
 {

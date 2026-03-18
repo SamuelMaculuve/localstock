@@ -60,7 +60,9 @@
                                 <label class="zForm-label">{{ __('App Copyright') }} <span
                                         class="text-danger">*</span></label>
                                 <input type="text" name="app_copyright" value="{{ getOption('app_copyright') }}"
-                                       class="form-control zForm-control">
+                                       class="form-control zForm-control"
+                                       placeholder="Copyright © :year Nome do site. Todos os direitos reservados.">
+                                <small class="text-muted">{{ __('Use :year for the current year') }}</small>
                             </div>
                             <div class="col-xxl-4 col-lg-6 pt-3">
                                 <label class="zForm-label">{{ __('Footer News Letter Title') }} <span
@@ -150,11 +152,17 @@
                                 <input type="number" name="free_download_per_day" value="{{getOption('free_download_per_day')}}" class="form-control zForm-control" required>
                             </div>
                             <div class="col-xxl-4 col-lg-6 pt-3">
-                                <label for="app_timezone" class="zForm-label">{{ __('Watermark Status') }} <span class="text-danger">*</span></label>
-                                <select name="watermark_status" class="form-select select2">
+                                <label for="watermark_status" class="zForm-label">{{ __('Watermark Status') }} <span class="text-danger">*</span></label>
+                                <select name="watermark_status" id="watermark_status" class="form-select select2">
                                     <option value="1" {{ getOption('watermark_status') == 1 ? 'selected':'' }}>{{ __('Active') }}</option>
                                     <option value="0" {{ getOption('watermark_status') == 0 ? 'selected':'' }}>{{ __('Deactivate') }}</option>
                                 </select>
+                            </div>
+                            <div class="col-xxl-4 col-lg-6 pt-3">
+                                <label for="watermark_opacity" class="zForm-label">{{ __('Watermark opacity') }} <span class="text-danger">*</span></label>
+                                <input type="number" name="watermark_opacity" id="watermark_opacity" min="1" max="100"
+                                       value="{{ getOption('watermark_opacity', 7) }}" class="form-control zForm-control" required>
+                                <small class="text-muted">{{ __('1 = more transparent, 100 = fully visible') }}</small>
                             </div>
                             <div class="col-xxl-4 col-lg-6 pt-3">
                                 <label for="app_timezone" class="zForm-label">{{ __('Blog Comment System') }} <span class="text-danger">*</span></label>

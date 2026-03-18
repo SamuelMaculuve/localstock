@@ -3,8 +3,8 @@
     <div class="footer-overlay" data-background="{{asset('assets/images/footer-grid-bg.png')}}">
         <div class="container">
             <div class="footer-subscribe">
-                <h4 class="title">{{ getOption('footer_news_letter_title') }}</h4>
-                <p class="info">{{ getOption('footer_news_letter_description') }}</p>
+                <h4 class="title">{{ __(getOption('footer_news_letter_title')) }}</h4>
+                <p class="info">{{ __(getOption('footer_news_letter_description')) }}</p>
                 <form class="ajax reset" data-handler="commonResponse" action="{{route('frontend.newsletter')}}"
                       method="POST">
                     <div class="subscribe-form">
@@ -32,7 +32,7 @@
                                 <ul class="footer-menu">
                             @foreach($productType->take(5) as $data)
                                 <li><a href="{{ route('frontend.product_category',$data->uuid) }}"
-                                       class="link">{{ $data->name }}</a></li>
+                                       class="link">{{ __($data->name) }}</a></li>
                             @endforeach
                         </ul>
                             </div>
@@ -40,7 +40,7 @@
                                 <ul class="footer-menu">
                             @foreach($productType->skip(5) as $data)
                                 <li><a href="{{ route('frontend.product_category',$data->uuid) }}"
-                                       class="link">{{ $data->name }}</a></li>
+                                       class="link">{{ __($data->name) }}</a></li>
                             @endforeach
                         </ul>
                             </div>
@@ -60,12 +60,9 @@
                     <div class="col-xl-3 col-lg-4 col-md-12 col-sm-7 order-3">
                         <h4 class="footer-menu-title">{{__('Contact Us')}}</h4>
                         <ul class="zList-pb-12">
-                            <li><p class="fs-16 fw-400 lh-26 text-footer-menu-text">{{__('Location')}}
-                                    : {{ getOption('app_location') }}</p></li>
-                            <li><p class="fs-16 fw-400 lh-26 text-footer-menu-text">{{__('Email')}}
-                                    : {{ getOption('app_email') }}</p></li>
-                            <li><p class="fs-16 fw-400 lh-26 text-footer-menu-text">{{__('Phone')}}
-                                    : {{ getOption('app_contact_number') }}</p></li>
+                            <li><p class="fs-16 fw-400 lh-26 text-footer-menu-text">{{__('Location')}}: {{ getOption('app_location') }}</p></li>
+                            <li><p class="fs-16 fw-400 lh-26 text-footer-menu-text">{{__('Email')}}: {{ getOption('app_email') }}</p></li>
+                            <li><p class="fs-16 fw-400 lh-26 text-footer-menu-text">{{__('Phone')}}: {{ getOption('app_contact_number') }}</p></li>
                         </ul>
                     </div>
                 </div>
@@ -73,9 +70,17 @@
             <div class="footer-bottom">
                 <div class="row rg-20 align-items-center">
                     <div class="col-lg-6">
-                        <p class="text">{{ getOption('app_copyright') }} | <a href="{{ getOption('develop_by_link') }}"
-                                                                              target="_blank"
-                                                                              class="link">{{ getOption('develop_by') }}</a>
+                        @php
+                            $rawCopyright = getOption('app_copyright', '');
+                            $year = date('Y');
+                            $copyright = $rawCopyright !== ''
+                                ? str_replace([':year', '{year}', '2022-2023'], [$year, $year, $year], $rawCopyright)
+                                : 'Copyright © ' . $year . ' ' . getOption('app_name', 'Stock Local') . '. Todos os direitos reservados.';
+                            $developBy = str_replace([':year', '{year}'], [$year, $year], getOption('develop_by', 'ZainikLab'));
+                        @endphp
+                        <p class="text">{{ $copyright }} | <a href="{{ getOption('develop_by_link') }}"
+                                                             target="_blank"
+                                                             class="link">{{ $developBy }}</a>
                         </p>
                     </div>
                     <div class="col-lg-6">

@@ -145,17 +145,24 @@
         var type = 'error';
         $('.error-message').remove();
         $('.is-invalid').removeClass('is-invalid');
+        var responseJSON = data && data['responseJSON'];
         if (data['status'] == false) {
-            output = output + data['message'];
-        } else if (data['status'] === 422) {
-            var errors = data['responseJSON']['errors'];
+            output = output + (data['message'] || '');
+        } else if (data['status'] === 422 && responseJSON && responseJSON['errors']) {
+            var errors = responseJSON['errors'];
             output = getValidationError(errors);
-        } else if (data['status'] === 500) {
-            output = data['responseJSON']['message'];
-        } else if (typeof data['responseJSON']['error'] !== 'undefined') {
-            output = data['responseJSON']['error'];
+            var firstMsg = typeof errors === 'object' ? (Object.values(errors)[0] && Object.values(errors)[0][0]) : null;
+            if (firstMsg && output.indexOf(firstMsg) === -1) {
+                output = output + ' ' + firstMsg;
+            }
+        } else if (data['status'] === 500 && responseJSON) {
+            output = responseJSON['message'] || '';
+        } else if (responseJSON && typeof responseJSON['error'] !== 'undefined') {
+            output = responseJSON['error'];
+        } else if (responseJSON && responseJSON['message']) {
+            output = responseJSON['message'];
         } else {
-            output = data['responseJSON']['message'];
+            output = output || 'An error occurred. Please try again.';
         }
         alertAjaxMessage(type, output);
     }

@@ -403,8 +403,13 @@
             <div class="container-fluid">
                 <div class="home-contributor-content bg-inner-bg" data-background="{{asset('assets/images/be-contributor-grid-bg.png')}}">
                     <div class="section-content-wrap text-center pb-0">
-                        <h4 class="title">{{ getOption('contributor_title') }}</h4>
-                        <p class="info">{{ getOption('contributor_description') }}</p>
+                        @php
+                            $appName = getOption('app_name', 'Stock Local');
+                            $contributorTitle = str_replace(':app_name', $appName, getOption('contributor_title', ''));
+                            $contributorDesc = str_replace(':app_name', $appName, getOption('contributor_description', ''));
+                        @endphp
+                        <h4 class="title">{{ $contributorTitle }}</h4>
+                        <p class="info">{{ $contributorDesc }}</p>
                         <a href="{{route('customer.be_a_contributor')}}"
                            class="zaiStock-btn d-inline-block">{{__('Be a Contributor')}}</a>
                     </div>

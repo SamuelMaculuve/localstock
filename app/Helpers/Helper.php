@@ -901,7 +901,6 @@ if (!function_exists('setCustomerAddonBuildVersion')) {
 if (!function_exists('getAddonCodeCurrentVersion')) {
     function getAddonCodeCurrentVersion($appCode)
     {
-        Artisan::call("optimize:clear");
         return config('Addon.' . $appCode . '.current_version', 0);
     }
 }
@@ -909,7 +908,6 @@ if (!function_exists('getAddonCodeCurrentVersion')) {
 if (!function_exists('getAddonCodeBuildVersion')) {
     function getAddonCodeBuildVersion($appCode)
     {
-        Artisan::call("optimize:clear");
         return config('Addon.' . $appCode . '.build_version', 0);
     }
 }

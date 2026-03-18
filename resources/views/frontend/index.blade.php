@@ -9,7 +9,7 @@
         <section class="home-heroBanner-section">
             <div class="container-fluid">
                 <div class="home-heroBanner-content" data-background="{{ getFileUrl(getOption('banner_image')) }}">
-                    <h4 class="title">{{ getOption('banner_title') }}</h4>
+                    <h4 class="title">{{ __(getOption('banner_title')) }}</h4>
                     <form action="{{route('frontend.search-result')}}" method="GET">
                         <div class="home-heroBanner-search">
                             <div class="headerSearchDropdown">
@@ -18,7 +18,7 @@
                                         value="all" {{(request()->get('asset_type') == 'all') ? 'selected' : ''}}>{{__("All Asset")}}</option>
                                     @foreach($productTypeData as $data)
                                         <option
-                                            {{(request()->get('asset_type') == $data->uuid) ? 'selected' : ''}} value="{{$data->uuid}}">{{$data->name}}</option>
+                                            {{(request()->get('asset_type') == $data->uuid) ? 'selected' : ''}} value="{{$data->uuid}}">{{ __($data->name) }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -63,7 +63,7 @@
         <section class="section-gap-bottom assetCategory-section">
             <div class="container-fluid">
                 <div class="assetCategory-content">
-                    <h4 class="fs-md-24 fs-18 fw-600 lh-md-34 lh-24 text-primary-dark-text text-center">{{ getOption('assets_type_title') }}</h4>
+                    <h4 class="fs-md-24 fs-18 fw-600 lh-md-34 lh-24 text-primary-dark-text text-center">{{ __(getOption('assets_type_title')) }}</h4>
                     <div class="assetCategory-wrap">
                         <div class="row rg-20 justify-content-center">
                             @foreach($productTypeData as $data)
@@ -71,7 +71,7 @@
                                     <a href="{{ route('frontend.product_category',$data->uuid) }}"
                                        class="assetCategory-item">
                                         <div class="icon"><img src="{{ $data->icon }}" alt=""/></div>
-                                        <p class="fs-20 fw-500 lh-30 text-primary-dark-text">{{ $data->name }}</p>
+                                        <p class="fs-20 fw-500 lh-30 text-primary-dark-text">{{ __($data->name) }}</p>
                                     </a>
                                 </div>
                             @endforeach
@@ -403,8 +403,13 @@
             <div class="container-fluid">
                 <div class="home-contributor-content bg-inner-bg" data-background="{{asset('assets/images/be-contributor-grid-bg.png')}}">
                     <div class="section-content-wrap text-center pb-0">
-                        <h4 class="title">{{ getOption('contributor_title') }}</h4>
-                        <p class="info">{{ getOption('contributor_description') }}</p>
+                        @php
+                            $appName = getOption('app_name', 'Stock Local');
+                            $contributorTitle = str_replace(':app_name', $appName, getOption('contributor_title', ''));
+                            $contributorDesc = str_replace(':app_name', $appName, getOption('contributor_description', ''));
+                        @endphp
+                        <h4 class="title">{{ $contributorTitle }}</h4>
+                        <p class="info">{{ $contributorDesc }}</p>
                         <a href="{{route('customer.be_a_contributor')}}"
                            class="zaiStock-btn d-inline-block">{{__('Be a Contributor')}}</a>
                     </div>

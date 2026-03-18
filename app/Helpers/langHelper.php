@@ -10,7 +10,7 @@ if (!function_exists('__')) {
                 file_put_contents(resource_path() . "/lang/" . session()->get('local') . ".json", '{}');
             }
 
-            $website = json_decode(file_get_contents(resource_path("/lang/" . session()->get('local') . ".json")), true);
+            $website = json_decode(file_get_contents($path), true);
             $key = preg_replace('/\s+/S', " ", $key);
 
             if (array_key_exists($key, $website)) {
@@ -22,7 +22,7 @@ if (!function_exists('__')) {
 
             $website[$key] = $key;
             
-            file_put_contents(resource_path("/lang/" . session()->get('local') . ".json"), json_encode($website));
+            file_put_contents($path, json_encode($website));
             if (session()->get('local') == null) {
                 return $key;
             }

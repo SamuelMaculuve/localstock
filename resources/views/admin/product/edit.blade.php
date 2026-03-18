@@ -92,6 +92,9 @@
                         </div>
 
                         <div id="variation-block" class="bg-style col-md-12 mb-20 p-15 {{ $product->accessibility == PRODUCT_ACCESSIBILITY_PAID ? '' : 'd-none'}}">
+                            @if ($errors->has('prices') || $errors->has('prices.0'))
+                                <div class="alert alert-danger mb-3">{{ $errors->first('prices') ?: $errors->first('prices.0') }}</div>
+                            @endif
                             @forelse($product->variations as $variation)
                                 @if($loop->first)
                                 <div class="row rg-24">

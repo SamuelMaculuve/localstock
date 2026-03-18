@@ -27,26 +27,42 @@
         var valStr = $(this).closest('tr').find('.val').val();
         var is_new = $(this).closest('tr').find('.is_new').val();
         var dom = $(this);
+        var csrfToken = $('meta[name="csrf-token"]').attr('content');
         $.ajax({
             type: "POST",
             url: $('#updateLanguageRoute').val(),
-            data: { 'key': keyStr, 'val': valStr, 'is_new': is_new },
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+            data: {
+                'key': keyStr,
+                'val': valStr,
+                'is_new': is_new,
+                '_token': csrfToken
+            },
             datatype: "json",
             success: function (response) {
                 toastr.options.positionClass = 'toast-bottom-right';
                 if (response['status'] == 200) {
-                    toastr.success(response['msg'])
+                    toastr.success(response['msg']);
                     dom.closest('tr').find('.is_new').val(0);
                     dom.closest('tr').find('.key').attr('readonly', true);
                     dom.attr('disabled', 'disabled');
                 } else {
-                    toastr.error(response['msg'])
+                    toastr.error(response['msg']);
                 }
                 if (response['type'] == 1) {
                     dom.closest('tr').remove();
                 }
             },
-            error: function (error) {
+            error: function (xhr) {
+                toastr.options.positionClass = 'toast-bottom-right';
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (xhr.statusText || 'Erro ao guardar.');
+                if (xhr.status === 419) {
+                    msg = 'Sessão expirada. Recarregue a página e tente novamente.';
+                }
+                toastr.error(msg);
             },
         });
     })
