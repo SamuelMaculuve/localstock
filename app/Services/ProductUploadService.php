@@ -219,14 +219,18 @@ class ProductUploadService
             if (isset($item['image']) && $item['image'] != NULL && $item['image'] != "") {
                 /*File Manager Call upload for Thumbnail Image*/
                 $new_file = new FileManager();
-                $extension = pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION);
+                $extension = strtolower((string) pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION));
+                $allowedThumbExt = ['jpeg', 'jpg', 'png', 'gif', 'tif', 'tiff', 'bmp', 'ico', 'psd', 'webp', 'heic', 'heif'];
+                $mime = strtolower((string) ($item['image']->getMimeType() ?? ''));
+                $allowedThumbMimes = [
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
+                    'image/tiff', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/x-ms-bmp',
+                    'image/heic', 'image/heif',
+                ];
+                $thumbnailOk = in_array($extension, $allowedThumbExt, true)
+                    || in_array($mime, $allowedThumbMimes, true);
 
-//                Log::info('Thumbnail extension: ', ['extension' => $extension]);
-//                if (in_array(strtolower($extension), ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
-//                    $upload = $new_file->upload('Product', $item['image'], $product->slug, null, getOption('watermark_status', false));
-
-
-                if (in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
+                if ($thumbnailOk) {
                     // Convert watermark_status to boolean (it's stored as '1' or '0' string)
                     $watermarkStatus = getOption('watermark_status', '0');
                     $watermarkEnabled = ($watermarkStatus == '1' || $watermarkStatus == 1);
@@ -459,10 +463,21 @@ class ProductUploadService
             if (isset($item['image']) && $item['image'] != NULL && $item['image'] != "") {
                 /*File Manager Call upload for Thumbnail Image*/
                 $new_file = new FileManager();
-                $extension = pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION);
+                $extension = strtolower((string) pathinfo($item['image']->getClientOriginalName(), PATHINFO_EXTENSION));
+                $allowedThumbExt = ['jpeg', 'jpg', 'png', 'gif', 'tif', 'tiff', 'bmp', 'ico', 'psd', 'webp', 'heic', 'heif'];
+                $mime = strtolower((string) ($item['image']->getMimeType() ?? ''));
+                $allowedThumbMimes = [
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
+                    'image/tiff', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/x-ms-bmp',
+                    'image/heic', 'image/heif',
+                ];
+                $thumbnailOk = in_array($extension, $allowedThumbExt, true)
+                    || in_array($mime, $allowedThumbMimes, true);
 
-                if (in_array(strtolower($extension), ['jpeg', 'jpg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'])) {
-                    $upload = $new_file->upload('Product', $item['image'], $product->slug, null, getOption('watermark_status', false));
+                if ($thumbnailOk) {
+                    $watermarkStatus = getOption('watermark_status', '0');
+                    $watermarkEnabled = ($watermarkStatus == '1' || $watermarkStatus == 1);
+                    $upload = $new_file->upload('Product', $item['image'], $product->slug, null, $watermarkEnabled);
                 } else {
                     throw new Exception(__('Invalid Thumbnail'));
                 }
